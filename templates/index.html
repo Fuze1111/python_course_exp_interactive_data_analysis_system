@@ -1,11 +1,51 @@
 <!-- 首页：上传 & 预览 -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}{% if table_html %}数据预览{% else %}上传数据{% endif %} – 数据分析系统{% endblock %}
 
-</body>
-</html>
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4">{% if table_html %}数据预览（前 10 行）{% else %}上传数据{% endif %}</h2>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-warning">
+        {% for msg in messages %}<div>{{ msg }}</div>{% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% if not table_html %}
+    <!-- 上传表单 -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+          <div id="drop-zone" class="text-center mb-3">
+            <p class="mb-0">拖拽文件到此处，或点击选择文件</p>
+            <input
+              type="file" id="datafile" name="datafile"
+              accept=".csv,.xls,.xlsx" required hidden
+            >
+            <div id="file-name"></div>
+          </div>
+          <button type="submit" class="btn btn-success d-block mx-auto">上传并预览</button>
+        </form>
+      </div>
+    </div>
+  {% else %}
+    <!-- 预览表格 -->
+    <div class="card shadow-sm mt-4">
+      <div class="card-body">
+        <h3 class="card-title">数据预览（前10行）</h3>
+        <div class="table-responsive">
+          {{ table_html | safe }}
+        </div>
+      </div>
+    </div>
+    <!-- 跳转按钮 -->
+    <div class="mb-4">
+      <a href="{{ url_for('clean') }}" class="btn btn-primary me-2">👉 数据清洗</a>
+      <a href="{{ url_for('analyze') }}" class="btn btn-secondary">👉 数据分析</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
