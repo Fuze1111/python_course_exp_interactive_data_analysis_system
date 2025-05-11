@@ -38,3 +38,27 @@ class DataCleaning:
         outliers = self.data[np.abs(self.data['z_score']) > threshold]
         self.data = self.data.drop(columns=['z_score'])
         return outliers
+
+    def apply_cleaning_rules(self, rules):
+        """
+        应用自动化清洗规则
+        Args:
+            rules: 清洗规则（字典格式）
+                示例：
+                {
+                    "missing_values": {"method": "fill", "fill_value": 0},
+                    "outliers": {"column": "age", "threshold": 3}
+                }
+        Returns:
+            清洗后的 DataFrame
+        """
+        if 'missing_values' in rules:
+            mv_rules = rules['missing_values']
+            self.handle_missing_values(method=mv_rules.get('method', 'drop'),
+                                       fill_value=mv_rules.get('fill_value'))
+        if 'outliers' in rules:
+            outlier_rules = rules['outliers']
+            column = outlier_rules.get('column')
+            threshold = outlier_rules.get('threshold', 3)
+            self.detect_outliers(column, threshold)
+        return self.data
