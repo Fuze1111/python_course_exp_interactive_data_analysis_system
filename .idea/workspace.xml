@@ -4,13 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6f565403-4737-471f-aa5b-0ff8563c1cc0" name="更改" comment="">
+    <list default="true" id="6f565403-4737-471f-aa5b-0ff8563c1cc0" name="更改" comment="initialize">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -23,7 +31,7 @@
 }]]></component>
   <component name="GithubPullRequestsUISettings"><![CDATA[{
   "selectedUrlAndAccountId": {
-    "url": "https://github.com/Fuze1111/PythonCourseExp.git",
+    "url": "https://github.com/Fuze1111/python_course_exp_interactive_data_analysis_system.git",
     "accountId": "4f342180-9831-453f-802b-a776d920a6b2"
   }
 }]]></component>
@@ -65,8 +73,17 @@
       <option name="presentableId" value="Default" />
       <updated>1746943872054</updated>
       <workItem from="1746943873536" duration="861000" />
-      <workItem from="1746950269993" duration="1425000" />
+      <workItem from="1746950269993" duration="1950000" />
     </task>
+    <task id="LOCAL-00001" summary="initialize">
+      <option name="closed" value="true" />
+      <created>1746951817145</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1746951817145</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -82,5 +99,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="initialize" />
+    <option name="LAST_COMMIT_MESSAGE" value="initialize" />
   </component>
 </project>
