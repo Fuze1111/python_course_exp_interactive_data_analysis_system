@@ -1,0 +1,29 @@
+HTML 模板
+选择其一
+
+一、静态 HTML 模板
+示例平台：
+HTML5 UP(https://html5up.net/)
+Start Bootstrap(https://startbootstrap.com/)
+Colorlib(https://colorlib.com/wp/templates/)
+TemplateMo(https://templatemo.com/)
+
+二、响应式 HTML 模板
+
+基于 Bootstrap、Tailwind CSS 等框架。
+使用 CSS 框架（如 Bootstrap）
+支持组件化结构
+
+三、后台管理模板（Admin Templates）
+常用框架：
+AdminLTE（基于 Bootstrap）
+CoreUI
+Argon Dashboard
+SB Admin
+
+五、前端框架模板（动态渲染）
+用于与 Vue、React、Angular 等前端框架集成，通常包含组件结构。
+
+六、模板引擎模板（带占位符）
+如用于服务端渲染的 EJS、Jinja2、Thymeleaf 等。
+
