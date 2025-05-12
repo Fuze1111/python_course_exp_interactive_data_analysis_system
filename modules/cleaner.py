@@ -17,14 +17,14 @@ class DataCleaning:
             fill_value: Value to fill missing values with (only used if method is 'fill').
         """
         if method == 'drop':
-            self.data.dropna()
+            self.data = self.data.dropna()
         elif method == 'fill' and fill_value is not None:
-            self.data.fillna(fill_value)
+            self.data = self.data.fillna(fill_value)
         else:
             raise ValueError("Invalid method or fill_value not provided for 'fill' method.")
         return self.data
 
-    def detect_outliers(self, column, threshold=3):
+    def detect_outliers(self, column, threshold=3, replacement=None):
         """
         Detects outliers in a specified column using Z-score method.
 
@@ -35,9 +35,23 @@ class DataCleaning:
         if column not in self.data.columns:
             raise ValueError(f"Column '{column}' not found in the data.")
         self.data['z_score'] = zscore(self.data[column])
-        outliers = self.data[np.abs(self.data['z_score']) > threshold]
-        self.data = self.data.drop(columns=['z_score'])
-        return outliers
+        if replacement is not None:
+            # Replace outliers with the specified value
+            self.data.loc[np.abs(self.data['z_score']) > threshold, column] = replacement
+        else:
+            # Remove rows with outliers
+            self.data = self.data[np.abs(self.data['z_score']) <= threshold]
+        self.data.drop(columns=['z_score'], inplace=True)
+        return self.data
+
+    def handle_duplicates(self, method='drop'):
+        if method == 'drop':
+            self.data = self.data.drop_duplicates()
+        elif method == 'mark':
+            self.data['is_duplicate'] = self.data.duplicated()
+        else:
+            raise ValueError("Invalid method. Use 'drop' or 'mark'.")
+        return self.data
 
     def apply_cleaning_rules(self, rules):
         """
@@ -48,6 +62,7 @@ class DataCleaning:
                 {
                     "missing_values": {"method": "fill", "fill_value": 0},
                     "outliers": {"column": "age", "threshold": 3}
+                    "duplicates": {"method": "drop"},
                 }
         Returns:
             清洗后的 DataFrame
@@ -61,4 +76,32 @@ class DataCleaning:
             column = outlier_rules.get('column')
             threshold = outlier_rules.get('threshold', 3)
             self.detect_outliers(column, threshold)
+        #处理重复值
+        if 'duplicates' in rules:
+            dup_rules = rules['duplicates']
+            self.handle_duplicates(method=dup_rules.get('method', 'drop'))
         return self.data
+
+data = {
+    'age': [25, 30, 35, 40, 1000, 45, None, 30],
+    'salary': [5000, 7000, 8000, None, 100000, 9000, 7000, 5000],
+    'name': ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Alice', 'Bob']
+}
+df = pd.DataFrame(data)
+
+# 初始化清洗类
+cleaner = DataCleaning(df)
+
+# 定义清洗规则
+rules = {
+    "missing_values": {"method": "fill", "fill_value": 0},  # 填充空白值为0
+    "outliers": {"column": "age", "threshold": 3},         # 检查age列的异常值
+    "duplicates": {"method": "drop"}                      # 删除重复值
+}
+
+# 应用清洗规则
+cleaned_data = cleaner.apply_cleaning_rules(rules)
+
+# 输出清洗后的数据
+print("清洗后的数据：")
+print(cleaned_data)
