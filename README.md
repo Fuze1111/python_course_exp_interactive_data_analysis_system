@@ -8,11 +8,13 @@
 
 --- 
 ### 运行
-#### 
-    bash
-    python app.py
-Click link like http://127.0.0.1:5000/
-
+```bash
+cd /path/to/your/project
+source venv/bin/activate
+pip install -r requirements.txt (still target)
+python app.py  
+```
+&nbsp;&nbsp;&nbsp;Click link like `http://127.0.0.1:5000/`
 
 ---
 ## Python后端
@@ -22,8 +24,19 @@ Click link like http://127.0.0.1:5000/
 ### 2.4 数据可视化
 
 ---
+## 任务要求
+| 模块       | 必做要求                                       | 扩展建议                              |
+|------------|------------------------------------------------|------------------------------------------------|
+| 数据管理   | 支持 CSV/Excel 等文件上传、预览、导出         | 数据库集成（SQLite/MySQL）                     |
+| 数据清洗   | 缺失值处理、异常值检测                         | 自动化清洗规则配置                             |
+| 可视化     | 动态生成 3 种以上图表                          | 用户自定义图表参数                             |
+| 分析功能   | 至少实现 1 种分析（聚类 / 预测 / 分类 / 降维） | 多算法对比 + 效果评估                          |
+| Web 界面   | 响应式布局，基础交互                           | 多用户登录、历史记录存储、检索等管理功能       |
+
+
+---
 ### 上传git
-运行desktop，点击上传文件，**只需**上传.py /.html/.txt/css/js等文件
-由于python，packages的版本可能不同，**无需**上传/.idea文件夹中的文件
+✅运行desktop，点击上传文件，**只需**上传.py / .html/ .txt/ css/ js等文件  
+❌由于python，packages的版本可能不同，**无需**上传/.idea文件夹中的文件
 
 
