@@ -77,10 +77,10 @@ def clean():
         # 渲染清洗后的数据
         return render_template(
             'clean.html',
-            data=GLOBAL_DF.head(10).to_dict(orient='records'),
+            data=GLOBAL_DF.head(10).to_dict(orient='records'),  # 确保是字典列表
             columns=GLOBAL_DF.columns,
             numeric_columns=GLOBAL_DF.select_dtypes(include=['number']).columns,
-            cleaned_data=cleaned_data.head(10).to_dict(orient='records'),
+            cleaned_data=cleaned_data.head(10).to_dict(orient='records'),  # 确保是字典列表
             cleaned_columns=cleaned_data.columns,
             data_count=len(GLOBAL_DF),
             column_count=len(GLOBAL_DF.columns),
