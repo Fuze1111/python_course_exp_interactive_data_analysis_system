@@ -161,7 +161,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for _, row in cleaned_data.iterrows() %}
+                        {% for row in cleaned_data %}
                         <tr>
                             {% for col in cleaned_columns %}
                             <td>{{ row[col] }}</td>

@@ -82,10 +82,11 @@ class DataCleaning:
                                        fill_value=mv_rules.get('fill_value'))
         if 'outliers' in rules:
             outlier_rules = rules['outliers']
-            column = outlier_rules.get('column')
-            threshold = outlier_rules.get('threshold', 3)
-            replacement = outlier_rules.get('replacement')
-            self.detect_outliers(column, threshold,replacement)
+            if outlier_rules is not None:
+                column = outlier_rules.get('column')
+                threshold = outlier_rules.get('threshold', 3)
+                replacement = outlier_rules.get('replacement')
+                self.detect_outliers(column, threshold, replacement)
         #处理重复值
         if 'duplicates' in rules:
             dup_rules = rules['duplicates']
