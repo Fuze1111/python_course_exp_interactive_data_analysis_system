@@ -1,0 +1,15 @@
+#drop-zone {
+  border: 2px dashed #6c757d;
+  border-radius: .25rem;
+  padding: 2rem;
+  cursor: pointer;
+  transition: background-color .2s;
+}
+#drop-zone.dragover {
+  background-color: #e9ecef;
+}
+#file-name {
+  margin-top: .5rem;
+  font-style: italic;
+  color: #6c757d;
+}
