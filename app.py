@@ -155,16 +155,25 @@ def export_data():
                 filepath = exporter.export_to_excel(filename)
             else:
                 flash('不支持的导出格式', 'warning')
-                return redirect(url_for('export_data'))
+                # 生成新的时间戳
+                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+                return render_template('result.html',
+                                      export_success=False,
+                                      timestamp=timestamp)
 
             # 导出成功，返回结果页面
             return render_template('result.html',
-                                  export_success=True,
-                                  filepath=filepath,
-                                  download_filename=filename)
+                                   export_success=True,
+                                   filepath=filepath,
+                                   download_filename=filename,
+                                   timestamp=datetime.now().strftime("%Y%m%d%H%M%S"))
         except Exception as e:
             flash(f'导出失败: {str(e)}', 'danger')
-            return redirect(url_for('export_data'))
+            # 生成新的时间戳
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            return render_template('result.html',
+                                  export_success=False,
+                                  timestamp=timestamp)
 
     # GET 请求时渲染导出页面
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
