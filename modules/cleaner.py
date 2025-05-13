@@ -89,31 +89,5 @@ class DataCleaning:
         if 'duplicates' in rules:
             dup_rules = rules['duplicates']
             self.handle_duplicates(method=dup_rules.get('method', 'drop'))
+        self.data.reset_index(drop=True, inplace=True)
         return self.data
-
-data = {
-    'age': [25, 30, 35, 40, 1000, 45, 33, 30],
-    'salary': [5000, 7000, 8000, None, 100000, 9000, 7000, 7000],
-    'name': ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Alice', 'Bob']
-}
-df = pd.DataFrame(data)
-
-# 初始化清洗类
-cleaner = DataCleaning(df)
-
-# 定义清洗规则
-rules = {
-    "missing_values": {"method": "drop"},  # 删去空白值
-    "outliers": {"column": "age", "threshold": 2},         # 检查age列的异常值
-    "duplicates": {"method": "drop"}                      # 删除重复值
-}
-
-# 应用清洗规则
-cleaned_data = cleaner.apply_cleaning_rules(rules)
-
-#重置索引更新行号
-cleaned_data = cleaned_data.reset_index(drop=True)
-
-# 输出清洗后的数据
-print("清洗后的数据：")
-print(cleaned_data)
