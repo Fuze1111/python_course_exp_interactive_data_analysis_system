@@ -2,7 +2,7 @@
 from flask import Flask, render_template, request, flash, redirect, url_for
 
 from modules.cleaner import DataCleaning
-from modules.uploader import save_and_load
+from modules.uploader import DataUploader
 import pandas as pd
 
 # 全局 DataFrame 存储
@@ -29,8 +29,10 @@ def upload():
         flash("未选择文件，请重新上传")
         return redirect(url_for('index'))
 
+
     try:
-        df = save_and_load(f, app.config['UPLOAD_FOLDER'])
+        uploader = DataUploader()
+        df = uploader.save_and_load(f, app.config['UPLOAD_FOLDER'])
         # 获取文件名
         FILENAME = f.filename
     except ValueError as e:
