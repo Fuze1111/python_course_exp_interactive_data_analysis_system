@@ -33,17 +33,34 @@ def upload():
 
     # 存储到全局以供后续清洗使用
     GLOBAL_DF = df
-    # 渲染前10行为 HTML 表格
-    # 在app.py中修改表格生成代码
-    table_html = df.head(10).to_html(
-        classes='table table-striped table-bordered table-responsive',
-        index=False,
-        border=0,
-        justify='left'
+
+    # 直接重定向到清洗界面，不再显示预览页面
+    return redirect(url_for('clean'))
+
+@app.route('/clean', methods=['GET'])
+def clean():
+    global GLOBAL_DF
+
+    if GLOBAL_DF is None:
+        flash("请先上传数据文件")
+        return redirect(url_for('index'))
+
+    # 获取数据基本信息
+    data_count = len(GLOBAL_DF)
+    column_count = len(GLOBAL_DF.columns)
+    columns = GLOBAL_DF.columns.tolist()
+
+    # 获取数值型列，用于异常值检测
+    numeric_columns = GLOBAL_DF.select_dtypes(include=['number']).columns.tolist()
+
+    return render_template(
+        'cleaner.html',
+        data=GLOBAL_DF.head(10),  # 只显示前10行
+        data_count=data_count,
+        column_count=column_count,
+        columns=columns,
+        numeric_columns=numeric_columns
     )
-    return render_template('index.html', table_html=table_html)
-
-
 
 
 if __name__ == '__main__':
