@@ -13,3 +13,14 @@
   font-style: italic;
   color: #6c757d;
 }
+
+/* 数据清洗页面样式 */
+.table-container {
+    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.card {
+    height: 100%;
+}

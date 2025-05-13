@@ -38,3 +38,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+
+// 数据清洗页面功能
+document.addEventListener('DOMContentLoaded', function() {
+    // 控制填充值输入框的启用/禁用状态
+    const dropMissingElem = document.getElementById('drop_missing');
+    const fillMissingElem = document.getElementById('fill_missing');
+    const fillValueElem = document.getElementById('fill_value');
+
+    if (dropMissingElem && fillMissingElem && fillValueElem) {
+        dropMissingElem.addEventListener('change', function() {
+            fillValueElem.disabled = true;
+        });
+
+        fillMissingElem.addEventListener('change', function() {
+            fillValueElem.disabled = false;
+        });
+
+        // 页面加载时初始化
+        fillValueElem.disabled = !fillMissingElem.checked;
+    }
+});

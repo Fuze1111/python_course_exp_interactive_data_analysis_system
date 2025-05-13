@@ -1,213 +1,183 @@
 <!-- 清洗：缺失值/异常值选项 -->
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数据清洗</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-    <style>
-        .card {
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .card-header {
-            background-color: #f8f9fa;
-            font-weight: bold;
-        }
-        .table-container {
-            overflow-x: auto;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-    </style>
-</head>
-<body>
-    <div class="container mt-4">
-        <h2 class="mb-4 text-center">数据清洗</h2>
+<!-- 数据清洗页面 -->
+{% extends "base.html" %}
+{% block title %}数据清洗 – 数据分析系统{% endblock %}
 
-        <!-- 数据预览卡片 -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>数据预览</span>
-                <span class="badge bg-primary">{{ data_count }}行 × {{ column_count }}列</span>
-            </div>
-            <div class="card-body">
-                <div class="table-container">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                {% for column in columns %}
-                                <th>{{ column }}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for _, row in data.iterrows() %}
-                            <tr>
-                                {% for col in columns %}
-                                <td>{{ row[col] }}</td>
-                                {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">数据清洗</h2>
 
-        <!-- 清洗选项表单 -->
-        <form method="post" action="/clean">
-            <div class="row">
-                <!-- 缺失值处理 -->
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="bi bi-question-circle"></i> 缺失值处理
-                        </div>
-                        <div class="card-body">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="missing_method" value="drop" id="drop_missing" checked>
-                                <label class="form-check-label" for="drop_missing">
-                                    删除包含缺失值的行
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="missing_method" value="fill" id="fill_missing">
-                                <label class="form-check-label" for="fill_missing">
-                                    填充缺失值
-                                </label>
-                            </div>
-                            <div class="mb-3 mt-3">
-                                <label for="fill_value" class="form-label">填充值</label>
-                                <input type="text" class="form-control" id="fill_value" name="fill_value" placeholder="输入填充值">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 异常值检测 -->
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="bi bi-exclamation-triangle"></i> 异常值检测
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="outlier_column" class="form-label">选择检测列</label>
-                                <select class="form-select" id="outlier_column" name="outlier_column">
-                                    <option value="" selected>不检测异常值</option>
-                                    {% for column in numeric_columns %}
-                                    <option value="{{ column }}">{{ column }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="threshold" class="form-label">Z分数阈值</label>
-                                <input type="number" class="form-control" id="threshold" name="threshold" value="3" min="1" max="10" step="0.1">
-                                <div class="form-text">使用Z分数方法检测异常值，通常取值为3</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="replacement" class="form-label">替换值 (可选)</label>
-                                <input type="text" class="form-control" id="replacement" name="replacement" placeholder="留空则删除异常值">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 重复值处理 -->
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="bi bi-files"></i> 重复值处理
-                        </div>
-                        <div class="card-body">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="duplicate_method" value="drop" id="drop_duplicates" checked>
-                                <label class="form-check-label" for="drop_duplicates">
-                                    删除重复行
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="duplicate_method" value="mark" id="mark_duplicates">
-                                <label class="form-check-label" for="mark_duplicates">
-                                    标记重复行
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="duplicate_method" value="none" id="ignore_duplicates">
-                                <label class="form-check-label" for="ignore_duplicates">
-                                    不处理重复值
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-warning">
+                {% for msg in messages %}<div>{{ msg }}</div>{% endfor %}
             </div>
-
-            <!-- 提交按钮 -->
-            <div class="d-grid gap-2 mb-4">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-magic"></i> 应用清洗规则
-                </button>
-            </div>
-        </form>
-
-        <!-- 清洗结果 -->
-        {% if cleaned_data is defined %}
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>清洗结果</span>
-                <span class="badge bg-success">{{ cleaned_count }}行 × {{ cleaned_columns_count }}列</span>
-            </div>
-            <div class="card-body">
-                <div class="table-container">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                {% for column in cleaned_columns %}
-                                <th>{{ column }}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for _, row in cleaned_data.iterrows() %}
-                            <tr>
-                                {% for col in cleaned_columns %}
-                                <td>{{ row[col] }}</td>
-                                {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="d-flex justify-content-end mt-3">
-                    <a href="/download/cleaned" class="btn btn-outline-success">
-                        <i class="bi bi-download"></i> 下载清洗后数据
-                    </a>
-                </div>
-            </div>
-        </div>
         {% endif %}
+    {% endwith %}
+
+    <!-- 数据信息卡片 -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>数据概览</span>
+            <span class="badge bg-info">{{ data_count }}行 × {{ column_count }}列</span>
+        </div>
+        <div class="card-body">
+            <div class="table-container">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            {% for column in columns %}
+                            <th>{{ column }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for _, row in data.iterrows() %}
+                        <tr>
+                            {% for col in columns %}
+                            <td>{{ row[col] }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // 控制填充值输入框的启用/禁用状态
-        document.getElementById('drop_missing').addEventListener('change', function() {
-            document.getElementById('fill_value').disabled = true;
-        });
+    <!-- 清洗选项表单 -->
+    <form method="post" action="{{ url_for('clean') }}">
+        <div class="row gx-4 gy-4 mb-4">
+            <!-- 缺失值处理 -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-dash-circle"></i> 缺失值处理
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="missing_method" value="drop" id="drop_missing" checked>
+                            <label class="form-check-label" for="drop_missing">
+                                删除缺失行
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="missing_method" value="fill" id="fill_missing">
+                            <label class="form-check-label" for="fill_missing">
+                                填充缺失值
+                            </label>
+                        </div>
+                        <div class="mb-3 mt-3">
+                            <label for="fill_value" class="form-label">填充值</label>
+                            <input type="text" class="form-control" id="fill_value" name="fill_value" placeholder="输入填充值">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        document.getElementById('fill_missing').addEventListener('change', function() {
-            document.getElementById('fill_value').disabled = false;
-        });
+            <!-- 异常值检测 -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-exclamation-triangle"></i> 异常值检测
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="outlier_column" class="form-label">选择检测列</label>
+                            <select class="form-select" id="outlier_column" name="outlier_column">
+                                <option value="" selected>不检测异常值</option>
+                                {% for column in numeric_columns %}
+                                <option value="{{ column }}">{{ column }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="threshold" class="form-label">Z分数阈值</label>
+                            <input type="number" class="form-control" id="threshold" name="threshold" value="3" min="1" max="10" step="0.1">
+                            <div class="form-text">使用Z分数方法检测异常值，通常取值为3</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="replacement" class="form-label">替换值 (可选)</label>
+                            <input type="text" class="form-control" id="replacement" name="replacement" placeholder="留空则删除异常值">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        // 页面加载时初始化
-        window.onload = function() {
-            document.getElementById('fill_value').disabled =
-                !document.getElementById('fill_missing').checked;
-        };
-    </script>
-</body>
-</html>
+            <!-- 重复值处理 -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-files"></i> 重复值处理
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="duplicate_method" value="drop" id="drop_duplicates" checked>
+                            <label class="form-check-label" for="drop_duplicates">
+                                删除重复行
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="duplicate_method" value="mark" id="mark_duplicates">
+                            <label class="form-check-label" for="mark_duplicates">
+                                标记重复行
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="duplicate_method" value="none" id="ignore_duplicates">
+                            <label class="form-check-label" for="ignore_duplicates">
+                                不处理重复值
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 提交按钮 -->
+        <div class="d-grid gap-2 mb-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-magic"></i> 应用清洗规则
+            </button>
+        </div>
+    </form>
+
+    <!-- 清洗结果 -->
+    {% if cleaned_data is defined %}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>清洗结果</span>
+            <span class="badge bg-success">{{ cleaned_count }}行 × {{ cleaned_columns_count }}列</span>
+        </div>
+        <div class="card-body">
+            <div class="table-container">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            {% for column in cleaned_columns %}
+                            <th>{{ column }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for _, row in cleaned_data.iterrows() %}
+                        <tr>
+                            {% for col in cleaned_columns %}
+                            <td>{{ row[col] }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <a href="/download/cleaned" class="btn btn-outline-success">
+                    <i class="bi bi-download"></i> 下载清洗后数据
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
