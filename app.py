@@ -1,5 +1,7 @@
 #主程序
 from flask import Flask, render_template, request, flash, redirect, url_for
+
+from modules.cleaner import DataCleaning
 from modules.uploader import save_and_load
 import pandas as pd
 
@@ -37,7 +39,7 @@ def upload():
     # 直接重定向到清洗界面，不再显示预览页面
     return redirect(url_for('clean'))
 
-@app.route('/clean', methods=['GET'])
+@app.route('/clean', methods=['GET', 'POST'])
 def clean():
     global GLOBAL_DF
 
@@ -45,22 +47,57 @@ def clean():
         flash("请先上传数据文件")
         return redirect(url_for('index'))
 
-    # 获取数据基本信息
-    data_count = len(GLOBAL_DF)
-    column_count = len(GLOBAL_DF.columns)
-    columns = GLOBAL_DF.columns.tolist()
+    if request.method == 'POST':
+        #获取清洗规则
+        missing_method = request.form.get('missing_method')
+        fill_value = request.form.get('fill_value')
+        outlier_column = request.form.get('outlier_column')
+        threshold = request.form.get('threshold', type=float)
+        replacement = request.form.get('replacement')
+        duplicate_method = request.form.get('duplicate_method')
 
-    # 获取数值型列，用于异常值检测
-    numeric_columns = GLOBAL_DF.select_dtypes(include=['number']).columns.tolist()
+        # 构建清洗规则
+        rules = {
+            "missing_values": {"method": missing_method, "fill_value": fill_value} if missing_method == 'fill' else {
+                "method": missing_method},
+            "outliers": {"column": outlier_column, "threshold": threshold,
+                         "replacement": replacement} if outlier_column else None,
+            "duplicates": {"method": duplicate_method}
+        }
 
+        #清洗数据
+        cleaner = DataCleaning(GLOBAL_DF)
+        try:
+            cleaned_data = cleaner.apply_cleaning_rules(rules)
+            cleaned_data = cleaned_data.reset_index(drop=True)
+        except ValueError as e:
+            flash(str(e))
+            return redirect(url_for('clean'))
+
+        # 渲染清洗后的数据
+        return render_template(
+            'clean.html',
+            data=GLOBAL_DF.head(10).to_dict(orient='records'),
+            columns=GLOBAL_DF.columns,
+            numeric_columns=GLOBAL_DF.select_dtypes(include=['number']).columns,
+            cleaned_data=cleaned_data.head(10).to_dict(orient='records'),
+            cleaned_columns=cleaned_data.columns,
+            data_count=len(GLOBAL_DF),
+            column_count=len(GLOBAL_DF.columns),
+            cleaned_count=len(cleaned_data),
+            cleaned_columns_count=len(cleaned_data.columns)
+        )
+
+        # GET 请求时渲染清洗页面
     return render_template(
-        'cleaner.html',
-        data=GLOBAL_DF.head(10),  # 只显示前10行
-        data_count=data_count,
-        column_count=column_count,
-        columns=columns,
-        numeric_columns=numeric_columns
+        'clean.html',
+        data=GLOBAL_DF.head(10).to_dict(orient='records'),
+        columns=GLOBAL_DF.columns,
+        numeric_columns=GLOBAL_DF.select_dtypes(include=['number']).columns,
+        data_count=len(GLOBAL_DF),
+        column_count=len(GLOBAL_DF.columns)
     )
+
 
 
 if __name__ == '__main__':
