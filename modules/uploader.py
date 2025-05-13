@@ -6,6 +6,9 @@ from werkzeug.utils import secure_filename
 from modules.data_management import DataManagement
 
 class DataUploader(DataManagement):
+    """
+    数据上传类,DataManagement的子类
+    """
     def __init__(self, data_path=None):
         super().__init__(data_path)
 

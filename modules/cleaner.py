@@ -10,11 +10,11 @@ class DataCleaning:
 
     def handle_missing_values(self, method='drop', fill_value=None):
         """
-        Handles missing values in the dataset.
+        处理数据中的缺失值
 
-        Args:
-            method: Method to handle missing values ('drop', 'fill').
-            fill_value: Value to fill missing values with (only used if method is 'fill').
+        参数:
+            method: 选择处理缺失值的方法（'drop' 或 'fill'）
+            fill_value: 如果选择 'fill' 方法，则需要提供填充值
         """
         if method == 'drop':
             self.data = self.data.dropna()
@@ -26,11 +26,12 @@ class DataCleaning:
 
     def detect_outliers(self, column, threshold=3, replacement=None):
         """
-        Detects outliers in a specified column using Z-score method.
+        检测指定列中的异常值，使用Z分数方法。
 
         Args:
-            column: Column name to check for outliers.
-            threshold: Z-score threshold for outlier detection.
+            column: 要检测异常值的列名。
+            threshold: Z分数阈值，默认值为3。
+            replacement: 如果提供，则用该值替换异常值，否则删除异常值。
         """
         if column not in self.data.columns:
             raise ValueError(f"列 '{column}' 不存在。")

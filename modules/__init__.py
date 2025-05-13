@@ -3,7 +3,7 @@
 # --- Uploader ---
 from .uploader import DataUploader
 
-# --- 其他模块可以在这里添加 ---
+# --- Cleaner ---
 from .cleaner import DataCleaning
 
 __all__ = [
