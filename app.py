@@ -67,6 +67,8 @@ def clean():
         outlier_column = request.form.get('outlier_column')
         threshold = request.form.get('threshold', type=float)
         replacement = request.form.get('replacement')
+        if replacement == "":
+            replacement = None
         duplicate_method = request.form.get('duplicate_method')
 
         # 构建清洗规则
