@@ -17,8 +17,8 @@ source venv/bin/activate
 pip install -r requirements.txt (still target)
 python app.py  
 ```
-&nbsp;&nbsp;&nbsp;Click link like `http://127.0.0.1:5000/`
-if you find pip install error, please use `pip install -r requirements.txt --no-deps` to install the packages one by one.  
+Click link like `http://127.0.0.1:5000/`  
+If you find pip install error, please use `pip install -r requirements.txt --no-deps` to install the packages one by one.  
 🤚Or you can exchange pip source to avoid cache issues.
 
 ---

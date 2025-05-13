@@ -7,6 +7,8 @@ import pandas as pd
 
 # 全局 DataFrame 存储
 GLOBAL_DF = None
+# 新增全局变量存储文件名
+FILENAME = None
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -21,7 +23,7 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    global GLOBAL_DF
+    global GLOBAL_DF, FILENAME
     f = request.files.get('datafile')
     if not f or f.filename == '':
         flash("未选择文件，请重新上传")
@@ -29,6 +31,8 @@ def upload():
 
     try:
         df = save_and_load(f, app.config['UPLOAD_FOLDER'])
+        # 获取文件名
+        FILENAME = f.filename
     except ValueError as e:
         flash(str(e))
         return redirect(url_for('index'))
@@ -95,7 +99,8 @@ def clean():
         columns=GLOBAL_DF.columns,
         numeric_columns=GLOBAL_DF.select_dtypes(include=['number']).columns,
         data_count=len(GLOBAL_DF),
-        column_count=len(GLOBAL_DF.columns)
+        column_count=len(GLOBAL_DF.columns),
+        filename = FILENAME
     )
 
 
