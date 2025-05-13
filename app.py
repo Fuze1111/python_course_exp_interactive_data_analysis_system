@@ -190,14 +190,21 @@ def download_file(filename):
 
 
 # 添加分析页面路由
-@app.route('/analyze')
+@app.route('/analyze', methods=['GET', 'POST'])
 def analyze():
     global GLOBAL_DF
     if GLOBAL_DF is None:
         flash("请先上传数据文件")
         return redirect(url_for('index'))
 
-    return render_template('analyze.html')
+    # 传递必要的变量，避免模板报错
+    saved_params = {}
+    columns = list(GLOBAL_DF.columns) if GLOBAL_DF is not None else []
+    return render_template(
+        'analyze.html',
+        saved_params=saved_params,
+        columns=columns
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)

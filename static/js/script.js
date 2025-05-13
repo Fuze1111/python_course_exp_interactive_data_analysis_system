@@ -59,3 +59,18 @@ document.addEventListener('DOMContentLoaded', function() {
         fillValueElem.disabled = !fillMissingElem.checked;
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const algorithmSelect = document.getElementById('ml_algorithm');
+    const paramDivs = document.querySelectorAll('.algorithm-params');
+    function updateParams() {
+        paramDivs.forEach(div => { div.style.display = 'none'; });
+        const selectedAlgorithm = algorithmSelect.value;
+        if (selectedAlgorithm) {
+            const selectedParamDiv = document.getElementById(selectedAlgorithm + '_params');
+            if (selectedParamDiv) selectedParamDiv.style.display = 'block';
+        }
+    }
+    updateParams();
+    algorithmSelect.addEventListener('change', updateParams);
+});
