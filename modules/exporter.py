@@ -11,8 +11,8 @@ class DataExporter(DataManager):
     数据导出类
     """
     def __init__(self, data):
-        super().__init__(data)
         self.data = data
+        os.makedirs('exports', exist_ok=True)
 
     def export_to_csv(self, filename, folder='exports'):
         """

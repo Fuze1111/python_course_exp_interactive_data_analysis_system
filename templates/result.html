@@ -1,11 +1,67 @@
-<!-- 可视化：图表展示 -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<!-- 导出结果页面 -->
+{% extends "base.html" %}
+{% block title %}导出数据 – 数据分析系统{% endblock %}
 
-</body>
-</html>
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4">数据导出</h2>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-warning">
+        {% for msg in messages %}<div>{{ msg }}</div>{% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- 导出表单 -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <h3 class="card-title">选择导出格式</h3>
+      <form action="{{ url_for('export_data') }}" method="post">
+        <div class="mb-3">
+          <label for="filename" class="form-label">文件名</label>
+          <input type="text" class="form-control" id="filename" name="filename"
+                 value="data_export_{{ timestamp }}" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label d-block">导出格式</label>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="format"
+                   id="format_csv" value="csv" checked>
+            <label class="form-check-label" for="format_csv">CSV</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="format"
+                   id="format_excel" value="excel">
+            <label class="form-check-label" for="format_excel">Excel</label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-success d-block mx-auto">导出数据</button>
+      </form>
+    </div>
+  </div>
+
+  {% if export_success %}
+  <!-- 导出成功信息 -->
+  <div class="alert alert-success">
+    <h4 class="alert-heading">导出成功!</h4>
+    <p>文件已保存至: <code>{{ filepath }}</code></p>
+    <hr>
+    <p class="mb-0">
+      <a href="{{ url_for('download_file', filename=download_filename) }}"
+         class="btn btn-primary">下载文件</a>
+      <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">返回首页</a>
+    </p>
+  </div>
+  {% endif %}
+
+  <!-- 导航按钮 -->
+  <div class="mt-4">
+    <a href="{{ url_for('analyze') }}" class="btn btn-secondary me-2">返回分析</a>
+    <a href="{{ url_for('index') }}" class="btn btn-outline-primary">返回首页</a>
+  </div>
+</div>
+{% endblock %}
