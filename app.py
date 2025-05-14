@@ -125,9 +125,8 @@ def clean():
 def export_data():
     global GLOBAL_DF, CLEANED_DF
 
-    # 确定要导出的数据框
-    source = request.args.get('source')
-    if source == 'cleaned' and CLEANED_DF is not None:
+    # 确定要导出的数据框，优先选择清洗后的数据
+    if CLEANED_DF is not None:
         df_to_export = CLEANED_DF
         default_filename = f"cleaned_data_{datetime.now().strftime('%Y%m%d%H%M%S')}"
     elif GLOBAL_DF is not None:
