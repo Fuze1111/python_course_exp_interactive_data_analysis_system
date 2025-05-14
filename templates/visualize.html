@@ -2,17 +2,20 @@
 {% block title %}数据可视化 – 数据分析系统{% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script> {# Using a recent version of Plotly #}
+{# 确保引入 Plotly.js，这里使用一个较新的版本 #}
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // 从后端获取列信息，并安全地注入到JS中
         const allColumns = {{ all_columns| tojson | safe
     }};
     const numericColumns = {{ numeric_columns| tojson | safe }};
     const categoricalColumns = {{ categorical_columns| tojson | safe }};
 
+    // 辅助函数：填充下拉选择框
     function populateSelect(selectElement, optionsArray, includeEmpty = false, emptyOptionText = "--请选择--", defaultSelectedValue = null) {
         if (!selectElement) return;
-        selectElement.innerHTML = ''; // Clear existing options
+        selectElement.innerHTML = ''; // 清空现有选项
         if (includeEmpty) {
             const emptyOpt = document.createElement('option');
             emptyOpt.value = "";
@@ -30,45 +33,53 @@
         });
     }
 
-    // Populate common "optional" selects on page load
+    // 页面加载时，填充通用的“可选”下拉框
     populateSelect(document.getElementById('hist_color_column'), allColumns, true, "--无--");
     populateSelect(document.getElementById('scatter_color_column'), allColumns, true, "--无--");
     populateSelect(document.getElementById('scatter_size_column'), numericColumns, true, "--无--");
     populateSelect(document.getElementById('line_color_column'), allColumns, true, "--无--");
     populateSelect(document.getElementById('bar_color_column'), allColumns, true, "--无--");
-    populateSelect(document.getElementById('box_x_column'), allColumns, true, "--无--");
+    populateSelect(document.getElementById('box_x_column'), allColumns, true, "--无--"); // Box plot X可以是任何列（通常是分类）
     populateSelect(document.getElementById('box_color_column'), allColumns, true, "--无--");
+
 
     const chartTypeSelect = document.getElementById('chart_type');
     const paramsContainer = document.getElementById('chart-params-container');
-    const allParamDivs = paramsContainer.querySelectorAll('.chart-params');
+    const allParamDivs = paramsContainer.querySelectorAll('.chart-params'); // 获取所有参数配置区域
 
+    // 当图表类型改变时触发
     chartTypeSelect.addEventListener('change', function () {
-        allParamDivs.forEach(div => div.style.display = 'none');
+        allParamDivs.forEach(div => div.style.display = 'none'); // 隐藏所有参数区
         const selectedType = this.value;
         if (selectedType) {
             const targetDiv = document.getElementById(selectedType + '_params');
             if (targetDiv) {
-                targetDiv.style.display = 'block';
-                // Populate specific required selects for this chart type
+                targetDiv.style.display = 'block'; // 显示对应图表类型的参数区
+
+                // 根据选择的图表类型，填充其特定的“必选”下拉框
                 if (selectedType === 'histogram') {
-                    populateSelect(document.getElementById('hist_column'), numericColumns);
+                    populateSelect(document.getElementById('hist_column'), numericColumns, false);
                 } else if (selectedType === 'scatter') {
-                    populateSelect(document.getElementById('scatter_x_column'), allColumns);
-                    populateSelect(document.getElementById('scatter_y_column'), allColumns);
+                    populateSelect(document.getElementById('scatter_x_column'), allColumns, false);
+                    populateSelect(document.getElementById('scatter_y_column'), allColumns, false);
                 } else if (selectedType === 'line') {
-                    populateSelect(document.getElementById('line_x_column'), allColumns);
-                    populateSelect(document.getElementById('line_y_column'), allColumns);
+                    populateSelect(document.getElementById('line_x_column'), allColumns, false);
+                    populateSelect(document.getElementById('line_y_column'), allColumns, false); // 假设Y轴也是单选数值列
                 } else if (selectedType === 'bar') {
-                    populateSelect(document.getElementById('bar_x_column'), categoricalColumns.length > 0 ? categoricalColumns : allColumns);
-                    populateSelect(document.getElementById('bar_y_column'), numericColumns.length > 0 ? numericColumns : allColumns);
+                    // X轴优先分类列，Y轴优先数值列，若无则用所有列
+                    populateSelect(document.getElementById('bar_x_column'), categoricalColumns.length > 0 ? categoricalColumns : allColumns, false);
+                    populateSelect(document.getElementById('bar_y_column'), numericColumns.length > 0 ? numericColumns : allColumns, false);
                 } else if (selectedType === 'box') {
-                    populateSelect(document.getElementById('box_y_column'), numericColumns);
+                    populateSelect(document.getElementById('box_y_column'), numericColumns, false);
                 } else if (selectedType === 'pie') {
-                    populateSelect(document.getElementById('pie_names_column'), categoricalColumns.length > 0 ? categoricalColumns : allColumns);
-                    populateSelect(document.getElementById('pie_values_column'), numericColumns);
+                    populateSelect(document.getElementById('pie_names_column'), categoricalColumns.length > 0 ? categoricalColumns : allColumns, false);
+                    populateSelect(document.getElementById('pie_values_column'), numericColumns, false);
                 } else if (selectedType === 'heatmap') {
-                    populateSelect(document.getElementById('heatmap_columns'), numericColumns);
+                    // 热力图列选择是多选的数值列
+                    const heatmapColsSelect = document.getElementById('heatmap_columns');
+                    populateSelect(heatmapColsSelect, numericColumns, false); // 不包含空选项，因为是多选
+                    heatmapColsSelect.multiple = true; // 确保是多选
+                    heatmapColsSelect.size = Math.min(5, numericColumns.length || 1); // 动态调整显示行数
                 }
             }
         }
@@ -78,16 +89,18 @@
     const plotDiv = document.getElementById('plot-div');
     const errorDiv = document.getElementById('error-message');
 
+    // 表单提交事件（生成图表）
     vizForm.addEventListener('submit', async function (event) {
-        event.preventDefault();
-        errorDiv.style.display = 'none';
+        event.preventDefault(); // 阻止表单默认提交
+        errorDiv.style.display = 'none'; // 隐藏错误信息
         errorDiv.textContent = '';
+        // 显示加载状态
         plotDiv.innerHTML = `<div class="d-flex justify-content-center align-items-center" style="height:100%; min-height: 300px;">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">正在加载...</span>
-                                        </div>
-                                        <p class="ms-2 mb-0">正在生成图表...</p>
-                                     </div>`;
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">正在加载...</span>
+                                    </div>
+                                    <p class="ms-2 mb-0">正在生成图表...</p>
+                                 </div>`;
 
         const chartType = chartTypeSelect.value;
         if (!chartType) {
@@ -99,47 +112,62 @@
 
         const formData = new FormData(this);
         const params = {};
+        // 从FormData构建参数对象
         for (let [key, value] of formData.entries()) {
-            if (params[key]) { // Handle multi-select (like heatmap_columns)
+            if (params[key]) { // 处理多选字段 (如 heatmap_columns)
                 if (!Array.isArray(params[key])) {
                     params[key] = [params[key]];
                 }
                 params[key].push(value);
             } else {
-                if (key === 'line_markers') {
-                    params[key] = true;
+                // 特殊处理复选框
+                if (this.elements[key] && this.elements[key].type === 'checkbox') {
+                    params[key] = this.elements[key].checked;
                 } else {
                     params[key] = value;
                 }
             }
         }
+
+        // 确保未选中的复选框（如line_markers）值为false
         if (chartType === 'line' && !params.hasOwnProperty('line_markers')) {
             params.line_markers = false;
         }
-
-        // For heatmap, if no columns selected, make it an empty list to signify "use all numeric" to backend
-        if (chartType === 'heatmap' && !params.hasOwnProperty('heatmap_columns')) {
-            params.heatmap_columns = []; // Backend logic handles empty list as "all numeric"
+        if (chartType === 'box' && !params.hasOwnProperty('box_notched')) {
+            params.box_notched = false;
         }
 
 
+        // 对于热力图，如果用户没有选择任何列，则发送空数组，后端可理解为使用所有数值列
+        if (chartType === 'heatmap' && !params.hasOwnProperty('heatmap_columns')) {
+            params.heatmap_columns = [];
+        }
+
+
+        // 清理可选下拉框的空值（即用户未选择时，值为""）
         const optionalSelects = [
             'hist_color_column', 'scatter_color_column', 'scatter_size_column',
             'line_color_column', 'bar_color_column', 'box_x_column', 'box_color_column'
         ];
         optionalSelects.forEach(selKey => {
-            if (params[selKey] === "") {
-                delete params[selKey];
+            if (params[selKey] === "") { // 如果是空字符串，表示未选择
+                delete params[selKey]; // 则从参数中移除，后端会使用默认值或忽略
             }
         });
+        // nbins 如果为空，也删除，让plotly自动处理
+        if (params.hist_nbins === "") delete params.hist_nbins;
+
 
         const requestData = {
             chart_type: chartType,
             params: params
         };
-        delete requestData.params.chart_type; // Already have it at top level
+        // params中不应再包含chart_type，因为它已在顶层
+        if (requestData.params.chart_type) delete requestData.params.chart_type;
+
 
         try {
+            // 发送异步请求到后端
             const response = await fetch("{{ url_for('generate_visualization_plot') }}", {
                 method: 'POST',
                 headers: {
@@ -151,20 +179,22 @@
             const result = await response.json();
 
             if (response.ok && result.plot_spec) {
-                const plotSpec = JSON.parse(result.plot_spec);
+                const plotSpec = JSON.parse(result.plot_spec); // 后端返回的是JSON字符串化的图表spec
                 Plotly.newPlot(plotDiv, plotSpec.data, plotSpec.layout, { responsive: true });
             } else {
+                // 处理后端返回的错误或非200状态码
                 throw new Error(result.error || `服务器错误 (状态 ${response.status})`);
             }
         } catch (err) {
             console.error('图表生成错误:', err);
             errorDiv.textContent = '生成图表失败: ' + err.message;
             errorDiv.style.display = 'block';
-            plotDiv.innerHTML = '<p class="text-center text-danger p-3">无法加载图表。请检查参数或控制台错误信息。</p>';
+            plotDiv.innerHTML = '<p class="text-center text-danger p-3">无法加载图表。请检查参数或查看浏览器控制台获取更多错误信息。</p>';
         }
     });
+    // 初始化图表区域的提示信息
     plotDiv.innerHTML = '<p class="text-center text-muted pt-5">请选择图表类型并配置参数以生成图表。</p>';
-        });
+    });
 </script>
 {% endblock %}
 
@@ -189,6 +219,7 @@
     {% endwith %}
 
     <div class="row">
+        {# 左侧：图表配置表单 #}
         <div class="col-lg-4 mb-4 mb-lg-0">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
@@ -196,6 +227,7 @@
                 </div>
                 <div class="card-body">
                     <form id="visualization-form">
+                        {# 通用配置：图表类型和标题 #}
                         <div class="mb-3">
                             <label for="chart_type" class="form-label fw-bold">图表类型</label>
                             <select class="form-select" id="chart_type" name="chart_type">
@@ -203,28 +235,29 @@
                                 <option value="histogram">直方图 (Histogram)</option>
                                 <option value="scatter">散点图 (Scatter Plot)</option>
                                 <option value="line">折线图 (Line Plot)</option>
-                                <option value="bar">柱状图 (Bar Chart)</option>
+                                <option value="bar">柱状图/条形图 (Bar Chart)</option>
                                 <option value="box">箱线图 (Box Plot)</option>
-                                <option value="pie">饼图 (Pie Chart)</option>
+                                <option value="pie">饼图/环形图 (Pie Chart)</option>
                                 <option value="heatmap">相关性热力图 (Correlation Heatmap)</option>
+                                {# 可以根据 DataVisualizer 类添加更多图表类型 #}
                             </select>
                         </div>
 
                         <div class="mb-3">
                             <label for="chart_title" class="form-label">图表标题 (可选)</label>
                             <input type="text" class="form-control" id="chart_title" name="chart_title"
-                                placeholder="例如：销售额分布">
+                                placeholder="例如：销售额按区域分布">
                         </div>
 
                         <hr>
                         <p class="text-muted small">根据所选图表类型配置以下参数：</p>
 
-                        <!-- Dynamic parameters will be injected here by JS -->
+                        {# 动态参数区域，由JS控制显示 #}
                         <div id="chart-params-container">
-                            <!-- Histogram Params -->
+                            <!-- 直方图参数 -->
                             <div class="chart-params p-2 border rounded mb-2 bg-light" id="histogram_params"
                                 style="display:none;">
-                                <p class="fw-bold small text-primary">直方图参数</p>
+                                <p class="fw-bold small text-primary mb-2">直方图参数</p>
                                 <div class="mb-3">
                                     <label for="hist_column" class="form-label">数据列 (数值型)</label>
                                     <select class="form-select form-select-sm" id="hist_column" name="hist_column"
@@ -233,7 +266,7 @@
                                 <div class="mb-3">
                                     <label for="hist_nbins" class="form-label">分箱数量 (可选)</label>
                                     <input type="number" class="form-control form-control-sm" id="hist_nbins"
-                                        name="hist_nbins" min="1" placeholder="例如: 20">
+                                        name="hist_nbins" min="1" placeholder="留空则自动">
                                 </div>
                                 <div class="mb-3">
                                     <label for="hist_color_column" class="form-label">颜色分组列 (可选)</label>
@@ -241,10 +274,10 @@
                                         name="hist_color_column"></select>
                                 </div>
                             </div>
-                            <!-- Scatter Params -->
+                            <!-- 散点图参数 -->
                             <div class="chart-params p-2 border rounded mb-2 bg-light" id="scatter_params"
                                 style="display:none;">
-                                <p class="fw-bold small text-primary">散点图参数</p>
+                                <p class="fw-bold small text-primary mb-2">散点图参数</p>
                                 <div class="mb-3">
                                     <label for="scatter_x_column" class="form-label">X轴列</label>
                                     <select class="form-select form-select-sm" id="scatter_x_column"
@@ -266,19 +299,20 @@
                                         name="scatter_size_column"></select>
                                 </div>
                             </div>
-                            <!-- Line Params -->
+                            <!-- 折线图参数 -->
                             <div class="chart-params p-2 border rounded mb-2 bg-light" id="line_params"
                                 style="display:none;">
-                                <p class="fw-bold small text-primary">折线图参数</p>
+                                <p class="fw-bold small text-primary mb-2">折线图参数</p>
                                 <div class="mb-3">
                                     <label for="line_x_column" class="form-label">X轴列</label>
                                     <select class="form-select form-select-sm" id="line_x_column" name="line_x_column"
                                         required></select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="line_y_column" class="form-label">Y轴列</label>
+                                    <label for="line_y_column" class="form-label">Y轴列 (数值型)</label>
                                     <select class="form-select form-select-sm" id="line_y_column" name="line_y_column"
                                         required></select>
+                                    {# 如果支持多Y轴，这里应为 multiple select #}
                                 </div>
                                 <div class="mb-3">
                                     <label for="line_color_column" class="form-label">颜色分组列 (可选)</label>
@@ -291,10 +325,10 @@
                                     <label class="form-check-label" for="line_markers">显示标记点</label>
                                 </div>
                             </div>
-                            <!-- Bar Params -->
+                            <!-- 柱状图参数 -->
                             <div class="chart-params p-2 border rounded mb-2 bg-light" id="bar_params"
                                 style="display:none;">
-                                <p class="fw-bold small text-primary">柱状图参数</p>
+                                <p class="fw-bold small text-primary mb-2">柱状图参数</p>
                                 <div class="mb-3">
                                     <label for="bar_x_column" class="form-label">X轴列 (类别)</label>
                                     <select class="form-select form-select-sm" id="bar_x_column" name="bar_x_column"
@@ -314,12 +348,12 @@
                                     <label for="bar_orientation" class="form-label">方向</label>
                                     <select class="form-select form-select-sm" id="bar_orientation"
                                         name="bar_orientation">
-                                        <option value="v" selected>垂直</option>
-                                        <option value="h">水平</option>
+                                        <option value="v" selected>垂直 (柱状)</option>
+                                        <option value="h">水平 (条形)</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="bar_mode" class="form-label">模式</label>
+                                    <label for="bar_mode" class="form-label">模式 (多系列时)</label>
                                     <select class="form-select form-select-sm" id="bar_mode" name="bar_mode">
                                         <option value="group" selected>分组 (group)</option>
                                         <option value="stack">堆叠 (stack)</option>
@@ -327,10 +361,10 @@
                                     </select>
                                 </div>
                             </div>
-                            <!-- Box Params -->
+                            <!-- 箱线图参数 -->
                             <div class="chart-params p-2 border rounded mb-2 bg-light" id="box_params"
                                 style="display:none;">
-                                <p class="fw-bold small text-primary">箱线图参数</p>
+                                <p class="fw-bold small text-primary mb-2">箱线图参数</p>
                                 <div class="mb-3">
                                     <label for="box_y_column" class="form-label">Y轴列 (数值型)</label>
                                     <select class="form-select form-select-sm" id="box_y_column" name="box_y_column"
@@ -346,11 +380,16 @@
                                     <select class="form-select form-select-sm" id="box_color_column"
                                         name="box_color_column"></select>
                                 </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="box_notched" name="box_notched"
+                                        value="true">
+                                    <label class="form-check-label" for="box_notched">显示缺口</label>
+                                </div>
                             </div>
-                            <!-- Pie Params -->
+                            <!-- 饼图参数 -->
                             <div class="chart-params p-2 border rounded mb-2 bg-light" id="pie_params"
                                 style="display:none;">
-                                <p class="fw-bold small text-primary">饼图参数</p>
+                                <p class="fw-bold small text-primary mb-2">饼图参数</p>
                                 <div class="mb-3">
                                     <label for="pie_names_column" class="form-label">标签列 (类别)</label>
                                     <select class="form-select form-select-sm" id="pie_names_column"
@@ -361,16 +400,21 @@
                                     <select class="form-select form-select-sm" id="pie_values_column"
                                         name="pie_values_column" required></select>
                                 </div>
+                                <div class="mb-3">
+                                    <label for="pie_hole" class="form-label">中心孔洞大小 (0-0.99, 可选)</label>
+                                    <input type="number" class="form-control form-control-sm" id="pie_hole"
+                                        name="pie_hole" min="0" max="0.99" step="0.05" placeholder="0 (饼图), 0.3 (环形图)">
+                                </div>
                             </div>
-                            <!-- Heatmap Params -->
+                            <!-- 相关性热力图参数 -->
                             <div class="chart-params p-2 border rounded mb-2 bg-light" id="heatmap_params"
                                 style="display:none;">
-                                <p class="fw-bold small text-primary">相关性热力图参数</p>
+                                <p class="fw-bold small text-primary mb-2">相关性热力图参数</p>
                                 <div class="mb-3">
                                     <label for="heatmap_columns" class="form-label">选择数值列 (可选)</label>
                                     <select class="form-select form-select-sm" id="heatmap_columns"
-                                        name="heatmap_columns" multiple size="5"></select>
-                                    <div class="form-text">按住 Ctrl/Cmd 选择多列。若不选，则使用所有数值列。</div>
+                                        name="heatmap_columns"></select> {# JS will set multiple=true #}
+                                    <div class="form-text">按住 Ctrl/Cmd 点击可选择多列。若不选，则默认使用所有数值列。</div>
                                 </div>
                             </div>
                         </div>
@@ -382,6 +426,7 @@
                 </div>
             </div>
         </div>
+        {# 右侧：图表展示区 #}
         <div class="col-lg-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-light">
@@ -389,21 +434,24 @@
                 </div>
                 <div class="card-body">
                     <div id="plot-div" style="min-height: 500px; width: 100%;">
-                        <!-- Plotly chart will be rendered here -->
+                        {# Plotly 图表将在此渲染 #}
                     </div>
-                    <div id="error-message" class="alert alert-danger mt-3" style="display:none;"></div>
+                    <div id="error-message" class="alert alert-danger mt-3" style="display:none;">
+                        {# 错误信息将在此显示 #}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Navigation Buttons -->
+    <!-- 页面导航按钮 -->
     <div class="mt-4 d-flex justify-content-center">
         <a href="{{ url_for('clean') }}" class="btn btn-outline-secondary me-2"><i class="bi bi-arrow-left-circle"></i>
             返回数据清洗</a>
         <a href="{{ url_for('analyze') }}" class="btn btn-outline-info me-2"><i class="bi bi-robot"></i> 前往分析</a>
         <a href="{{ url_for('export_data', source='auto') }}" class="btn btn-outline-success"><i
                 class="bi bi-download"></i> 导出当前数据</a>
+        {# 'source=auto' 可以让后端决定导出哪个DataFrame (原始/清洗后/分析后等) #}
     </div>
 </div>
 {% endblock %}

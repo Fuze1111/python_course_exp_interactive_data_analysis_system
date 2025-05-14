@@ -9,11 +9,11 @@
     <h2 class="mb-4">数据清洗</h2>
 
     {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert alert-warning">
-                {% for msg in messages %}<div>{{ msg }}</div>{% endfor %}
-            </div>
-        {% endif %}
+    {% if messages %}
+    <div class="alert alert-warning">
+        {% for msg in messages %}<div>{{ msg }}</div>{% endfor %}
+    </div>
+    {% endif %}
     {% endwith %}
 
     <!-- 数据信息卡片 -->
@@ -57,20 +57,23 @@
                     </div>
                     <div class="card-body">
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="missing_method" value="drop" id="drop_missing" checked>
+                            <input class="form-check-input" type="radio" name="missing_method" value="drop"
+                                id="drop_missing" checked>
                             <label class="form-check-label" for="drop_missing">
                                 删除缺失行
                             </label>
                         </div>
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="missing_method" value="fill" id="fill_missing">
+                            <input class="form-check-input" type="radio" name="missing_method" value="fill"
+                                id="fill_missing">
                             <label class="form-check-label" for="fill_missing">
                                 填充缺失值
                             </label>
                         </div>
                         <div class="mb-3 mt-3">
                             <label for="fill_value" class="form-label">填充值</label>
-                            <input type="text" class="form-control" id="fill_value" name="fill_value" placeholder="输入填充值">
+                            <input type="text" class="form-control" id="fill_value" name="fill_value"
+                                placeholder="输入填充值">
                         </div>
                     </div>
                 </div>
@@ -94,12 +97,14 @@
                         </div>
                         <div class="mb-3">
                             <label for="threshold" class="form-label">Z分数阈值</label>
-                            <input type="number" class="form-control" id="threshold" name="threshold" value="3" min="1" max="10" step="0.1">
+                            <input type="number" class="form-control" id="threshold" name="threshold" value="3" min="1"
+                                max="10" step="0.1">
                             <div class="form-text">使用Z分数方法检测异常值，通常取值为3</div>
                         </div>
                         <div class="mb-3">
                             <label for="replacement" class="form-label">替换值 (可选)</label>
-                            <input type="text" class="form-control" id="replacement" name="replacement" placeholder="留空则删除异常值">
+                            <input type="text" class="form-control" id="replacement" name="replacement"
+                                placeholder="留空则删除异常值">
                         </div>
                     </div>
                 </div>
@@ -113,19 +118,22 @@
                     </div>
                     <div class="card-body">
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="duplicate_method" value="drop" id="drop_duplicates" checked>
+                            <input class="form-check-input" type="radio" name="duplicate_method" value="drop"
+                                id="drop_duplicates" checked>
                             <label class="form-check-label" for="drop_duplicates">
                                 删除重复行
                             </label>
                         </div>
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="duplicate_method" value="mark" id="mark_duplicates">
+                            <input class="form-check-input" type="radio" name="duplicate_method" value="mark"
+                                id="mark_duplicates">
                             <label class="form-check-label" for="mark_duplicates">
                                 标记重复行
                             </label>
                         </div>
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="duplicate_method" value="none" id="ignore_duplicates">
+                            <input class="form-check-input" type="radio" name="duplicate_method" value="none"
+                                id="ignore_duplicates">
                             <label class="form-check-label" for="ignore_duplicates">
                                 不处理重复值
                             </label>
@@ -144,15 +152,15 @@
     </form>
 
     <!-- 清洗结果 -->
-    {% if cleaned_data is defined %}
+    {% if cleaned_data is defined and cleaned_data is not none %}
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span>清洗结果</span>
             <span class="badge bg-success">{{ cleaned_count }}行 × {{ cleaned_columns_count }}列</span>
         </div>
         <div class="card-body">
-            <div class="table-container">
-                <table class="table table-striped table-hover">
+            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-striped table-hover table-sm">
                     <thead>
                         <tr>
                             {% for column in cleaned_columns %}
@@ -163,17 +171,20 @@
                     <tbody>
                         {% for row in cleaned_data %}
                         <tr>
-                            {% for col in cleaned_columns %}
-                            <td>{{ row[col] }}</td>
+                            {% for col_name in cleaned_columns %}
+                            <td>{{ row[col_name] }}</td>
                             {% endfor %}
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            <div class="d-flex justify-content-end mt-3">
-                <a href="{{ url_for('analyze') }}" class="btn btn-secondary me-2">
-                    <i class="bi bi-bar-chart"></i> 数据分析
+            <div class="d-flex justify-content-end mt-3 gap-2">
+                <a href="{{ url_for('analyze') }}" class="btn btn-secondary">
+                    <i class="bi bi-robot"></i> 数据分析
+                </a>
+                <a href="{{ url_for('visualize_page') }}" class="btn btn-info"> {# <--- 新增按钮 #} <i
+                        class="bi bi-bar-chart-line-fill"></i> 数据可视化
                 </a>
                 <a href="{{ url_for('export_data', source='cleaned') }}" class="btn btn-outline-success">
                     <i class="bi bi-download"></i> 导出清洗后数据
