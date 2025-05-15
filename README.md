@@ -1,25 +1,20 @@
 # 文件数据分析与可视化综合应用
 ## Web页面
 ⏲  使用Bootstrap响应式布局，Flask框架实现数据分析与可视化的Web应用。  
-You can change this with other frameworks like Django, Streamlit, etc.
+You can exchange this with other frameworks like Django, Streamlit, etc.
 But you must write the expression when pushing.
 ### 1.1 base界面
 ### 1.2 文件上传
-#### 
-DataUploader封装
 ### 1.3 数据清洗
-Z分数（Z-Score）表示一个数据点与数据集均值之间的距离（以标准差为单位）。其公式为：
-$$Z=\frac{X-\mu}{\sigma}$$Z分数的结果是一个无量纲值，表示数据点在分布中的相对位置。  
-在正态分布中，约99.7%的数据点的Z分数在[-3, 3]范围内。超出此范围的点可能被标记为异常值。
 ### 1.4 数据分析
-### 1.5 数据可视化
+### 1.5 数据可视化（可选）
 
 --- 
 ### 运行
 ```bash
 cd /path/to/your/project
 source venv/bin/activate
-pip install -r requirements.txt 
+pip install -r requirements.txt (still target)
 python app.py  
 ```
 Click link like `http://127.0.0.1:5000/`  

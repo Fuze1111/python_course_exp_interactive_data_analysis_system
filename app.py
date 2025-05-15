@@ -1,5 +1,5 @@
 #主程序
-from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
+from flask import Flask, render_template, request, flash, redirect, url_for
 
 from modules.cleaner import DataCleaning
 from modules.uploader import DataUploader
