@@ -1,13 +1,17 @@
 # modules/__init__.py
 
-# --- Uploader ---
 from .uploader import DataUploader
-
-# --- Cleaner ---
 from .cleaner import DataCleaning
+from .analyzer import DataAnalyzer
+from .data_management import DataManagement
+from .exporter import DataExporter
+from .visualizer import DataVisualizer
 
 __all__ = [
-    # 类
     'DataUploader',
     'DataCleaning',
+    'DataAnalyzer',
+    'DataManagement',
+    'DataExporter',
+    'DataVisualizer'
 ]

@@ -5,11 +5,7 @@ from datetime import datetime
 import os
 import json
 
-from modules.cleaner import DataCleaning
-from modules.uploader import DataUploader
-from modules.visualizer import DataVisualizer
-from modules.exporter import DataExporter
-from modules.analyzer import DataAnalyzer
+from modules import DataCleaning, DataUploader, DataVisualizer, DataExporter, DataAnalyzer
 
 # 全局 DataFrame 存储
 GLOBAL_DF = None
