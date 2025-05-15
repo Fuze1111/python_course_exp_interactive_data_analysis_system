@@ -74,3 +74,36 @@ document.addEventListener('DOMContentLoaded', function() {
     updateParams();
     algorithmSelect.addEventListener('change', updateParams);
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const algorithmSelect = document.getElementById('ml_algorithm');
+    const targetColumnSelect = document.getElementById('target_column');
+    const targetColumnFormGroup = targetColumnSelect ? targetColumnSelect.closest('.mb-3') : null;
+
+    function toggleTargetColumn() {
+        const selectedAlgorithm = algorithmSelect.value;
+        // 无监督学习算法列表
+        const unsupervisedAlgorithms = ['kmeans', 'dbscan', 'pca'];
+
+        if (targetColumnSelect && targetColumnFormGroup) {
+            if (unsupervisedAlgorithms.includes(selectedAlgorithm)) {
+                // 无监督学习: 禁用目标特征选择并添加视觉反馈
+                targetColumnSelect.disabled = true;
+                targetColumnSelect.value = '';
+                targetColumnFormGroup.classList.add('text-muted');
+                targetColumnFormGroup.querySelector('.form-text').textContent = '无监督学习不需要目标变量';
+            } else {
+                // 监督学习: 启用目标特征选择
+                targetColumnSelect.disabled = false;
+                targetColumnFormGroup.classList.remove('text-muted');
+                targetColumnFormGroup.querySelector('.form-text').textContent = '监督学习需选择目标变量';
+            }
+        }
+    }
+
+    // 初始化
+    if (algorithmSelect) {
+        toggleTargetColumn();
+        algorithmSelect.addEventListener('change', toggleTargetColumn);
+    }
+});
