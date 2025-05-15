@@ -70,11 +70,44 @@
                                 填充缺失值
                             </label>
                         </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="missing_method" value="none"
+                                id="pass_missing">
+                            <label class="form-check-label" for="pass_missing">
+                                不处理缺失值
+                            </label>
+                        </div>
                         <div class="mb-3 mt-3">
                             <label for="fill_value" class="form-label">填充值</label>
                             <input type="text" class="form-control" id="fill_value" name="fill_value"
                                 placeholder="输入填充值">
                         </div>
+                        <script>
+                            // 获取所有缺失值处理选项和填充值输入框
+                            const missingMethodRadios = document.querySelectorAll('input[name="missing_method"]');
+                            const fillValueInput = document.getElementById('fill_value');
+
+                            // 添加事件监听器
+                            missingMethodRadios.forEach(radio => {
+                                radio.addEventListener('change', () => {
+                                    // 如果选中“填充缺失值”，启用填充值输入框；否则禁用
+                                    if (radio.value === 'fill' && radio.checked) {
+                                        fillValueInput.disabled = false;
+                                    } else {
+                                        fillValueInput.disabled = true;
+                                        fillValueInput.value = ''; // 清空输入框
+                                    }
+                                });
+                            });
+
+                            // 页面加载时检查默认选项
+                            document.addEventListener('DOMContentLoaded', () => {
+                                const selectedMethod = document.querySelector('input[name="missing_method"]:checked');
+                                if (selectedMethod && selectedMethod.value !== 'fill') {
+                                    fillValueInput.disabled = true;
+                                }
+                            });
+                        </script>
                     </div>
                 </div>
             </div>

@@ -20,6 +20,8 @@ class DataCleaning:
             self.data = self.data.dropna()
         elif method == 'fill' and fill_value is not None:
             self.data = self.data.fillna(fill_value)
+        elif method == 'none':
+            pass
         else:
             raise ValueError("Invalid method or fill_value not provided for 'fill' method.")
         return self.data
