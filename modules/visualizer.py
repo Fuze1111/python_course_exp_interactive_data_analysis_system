@@ -2,6 +2,7 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from typing import Union
 from plotly.subplots import make_subplots
 import numpy as np
 
@@ -114,7 +115,7 @@ class DataVisualizer:
 
         return fig
 
-    def plot_line(self, x_column: str, y_columns: str | list, color_column: str = None,
+    def plot_line(self, x_column: str, y_columns: Union[str, list], color_column: str = None,
                   title: str = None, markers: bool = False) -> go.Figure:
         """
         生成折线图

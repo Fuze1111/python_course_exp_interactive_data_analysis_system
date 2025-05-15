@@ -1,16 +1,14 @@
-#主程序
-from flask import Flask, render_template, request, flash, redirect, url_for
+# 主程序
+from flask import Flask, render_template, request, flash, redirect, url_for, send_from_directory, jsonify
+import pandas as pd
+from datetime import datetime
+import os
+import json
 
 from modules.cleaner import DataCleaning
 from modules.uploader import DataUploader
-from modules.visualizer import DataVisualizer 
-import pandas as pd
-
-from flask import send_from_directory
-from datetime import datetime
-import os
+from modules.visualizer import DataVisualizer
 from modules.exporter import DataExporter
-import json
 
 # 全局 DataFrame 存储
 GLOBAL_DF = None
