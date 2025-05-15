@@ -26,19 +26,19 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label for="ml_algorithm" class="form-label">算法选择</label>
-                            <select class="form-select" id="ml_algorithm" name="ml_algorithm">
-                                <option value="" selected>请选择算法</option>
-                                <optgroup label="监督学习">
-                                    <option value="linear_regression" {% if saved_params.ml_algorithm == 'linear_regression' %}selected{% endif %}>线性回归</option>
-                                    <option value="random_forest_regression" {% if saved_params.ml_algorithm == 'random_forest_regression' %}selected{% endif %}>随机森林回归</option>
-                                    <option value="random_forest_classification" {% if saved_params.ml_algorithm == 'random_forest_classification' %}selected{% endif %}>随机森林分类</option>
-                                </optgroup>
-                                <optgroup label="无监督学习">
-                                    <option value="kmeans" {% if saved_params.ml_algorithm == 'kmeans' %}selected{% endif %}>K均值聚类</option>
-                                    <option value="dbscan" {% if saved_params.ml_algorithm == 'dbscan' %}selected{% endif %}>DBSCAN</option>
-                                    <option value="pca" {% if saved_params.ml_algorithm == 'pca' %}selected{% endif %}>主成分分析(PCA)</option>
-                                </optgroup>
-                            </select>
+                                <select class="form-select" id="ml_algorithm" name="ml_algorithm">
+                                    <option value="" selected>请选择算法</option>
+                                    <optgroup label="监督学习">
+                                        <option value="linear_regression" {% if saved_params.ml_algorithm == 'linear_regression' %}selected{% endif %}>线性回归</option>
+                                        <option value="random_forest_regression" {% if saved_params.ml_algorithm == 'random_forest_regression' %}selected{% endif %}>随机森林回归</option>
+                                        <option value="random_forest_classification" {% if saved_params.ml_algorithm == 'random_forest_classification' %}selected{% endif %}>随机森林分类</option>
+                                    </optgroup>
+                                    <optgroup label="无监督学习">
+                                        <option value="kmeans" {% if saved_params.ml_algorithm == 'kmeans' %}selected{% endif %}>K均值聚类</option>
+                                        <option value="dbscan" {% if saved_params.ml_algorithm == 'dbscan' %}selected{% endif %}>DBSCAN密度聚类</option>
+                                        <option value="pca" {% if saved_params.ml_algorithm == 'pca' %}selected{% endif %}>主成分分析(PCA)</option>
+                                    </optgroup>
+                                </select>
                         </div>
                     </div>
                     <!-- 目标特征 -->
