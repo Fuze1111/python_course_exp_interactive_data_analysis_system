@@ -188,13 +188,32 @@ def download_file(filename):
 # 添加分析页面路由
 @app.route('/analyze', methods=['GET', 'POST'])
 def analyze():
-    global GLOBAL_DF
-    if GLOBAL_DF is None:
+    global GLOBAL_DF, CLEANED_DF
+
+    # 优先使用清洗后的数据
+    df_to_analyze = CLEANED_DF if CLEANED_DF is not None else GLOBAL_DF
+
+    if df_to_analyze is None:
         flash("请先上传数据文件")
         return redirect(url_for('index'))
 
+    # 尝试将可能是数值的字符串列转换为数值类型
+    df_converted = df_to_analyze.copy()
+    for column in df_converted.columns:
+        if df_converted[column].dtype == 'object':  # 如果是对象类型（可能是字符串）
+            try:
+                # 尝试转换为数值
+                df_converted[column] = pd.to_numeric(df_converted[column], errors='coerce')
+                # 如果转换成功（没有太多NaN），保留转换结果
+                if df_converted[column].isna().sum() <= len(df_converted) * 0.1:  # 允许10%的NaN
+                    df_to_analyze[column] = df_converted[column]
+            except:
+                pass  # 无法转换则保持原样
+
     saved_params = {}
-    columns = list(GLOBAL_DF.columns)
+    columns = list(df_to_analyze.columns)
+    # 更新数值列列表
+    numeric_columns = list(df_to_analyze.select_dtypes(include=['number']).columns)
     ml_results = None
     ml_metrics = None
     feature_importance_chart = None
@@ -210,7 +229,50 @@ def analyze():
         ml_algorithm = form.get('ml_algorithm')
         test_size = float(form.get('test_size') or 20) / 100
 
-        analyzer = DataAnalyzer(GLOBAL_DF)
+        # 先转换所选特征和目标列为数值型
+        df_for_ml = df_to_analyze.copy()
+        converted_features = []
+        for feature in features:
+            if feature not in numeric_columns:
+                try:
+                    df_for_ml[feature] = pd.to_numeric(df_for_ml[feature], errors='coerce')
+                    df_for_ml[feature] = df_for_ml[feature].fillna(df_for_ml[feature].mean())
+                    converted_features.append(feature)
+                except Exception as e:
+                    flash(f"特征 '{feature}' 无法转换为数值: {str(e)}", "warning")
+                    # 继续处理其他特征
+
+        if target_column and target_column not in numeric_columns and ml_algorithm in ['linear_regression', 'random_forest_regression']:
+            try:
+                df_for_ml[target_column] = pd.to_numeric(df_for_ml[target_column], errors='coerce')
+                df_for_ml[target_column] = df_for_ml[target_column].fillna(df_for_ml[target_column].mean())
+            except Exception as e:
+                flash(f"目标列 '{target_column}' 无法转换为数值: {str(e)}", "danger")
+                return render_template(
+                    'analyze.html',
+                    saved_params=saved_params,
+                    columns=columns,
+                    numeric_columns=numeric_columns,
+                    ml_results=ml_results,
+                    ml_metrics=ml_metrics,
+                    feature_importance_chart=feature_importance_chart,
+                    predictions_chart=predictions_chart,
+                    cluster_chart=cluster_chart
+                )
+
+        # 查找转换后有大量缺失值的特征
+        problematic_features = []
+        for feature in features:
+            if df_for_ml[feature].isna().sum() > len(df_for_ml) * 0.2:  # 超过20%的值缺失
+                problematic_features.append(feature)
+
+        if problematic_features:
+            flash(f"以下特征转换为数值后有大量缺失值: {', '.join(problematic_features)}", "warning")
+
+        if converted_features:
+            flash(f"以下特征已自动转换为数值: {', '.join(converted_features)}", "info")
+
+        analyzer = DataAnalyzer(df_for_ml)
 
         try:
             if ml_algorithm == 'linear_regression':
@@ -244,7 +306,6 @@ def analyze():
                 return redirect(url_for('analyze'))
 
             ml_results = True  # 标记有结果
-            # 你可以在此处生成 feature_importance_chart、predictions_chart、cluster_chart 的 base64 图片并传递
 
         except Exception as e:
             flash(f"分析失败: {str(e)}", "danger")
@@ -253,12 +314,14 @@ def analyze():
         'analyze.html',
         saved_params=saved_params,
         columns=columns,
+        numeric_columns=numeric_columns,
         ml_results=ml_results,
         ml_metrics=ml_metrics,
         feature_importance_chart=feature_importance_chart,
         predictions_chart=predictions_chart,
         cluster_chart=cluster_chart
     )
+
 @app.route('/visualize', methods=['GET'])
 def visualize_page():
     global GLOBAL_DF, CLEANED_DF, FILENAME
