@@ -9,6 +9,7 @@ from modules.cleaner import DataCleaning
 from modules.uploader import DataUploader
 from modules.visualizer import DataVisualizer
 from modules.exporter import DataExporter
+from modules.analyzer import DataAnalyzer
 
 # 全局 DataFrame 存储
 GLOBAL_DF = None
@@ -196,13 +197,71 @@ def analyze():
         flash("请先上传数据文件")
         return redirect(url_for('index'))
 
-    # 传递必要的变量，避免模板报错
     saved_params = {}
-    columns = list(GLOBAL_DF.columns) if GLOBAL_DF is not None else []
+    columns = list(GLOBAL_DF.columns)
+    ml_results = None
+    ml_metrics = None
+    feature_importance_chart = None
+    predictions_chart = None
+    cluster_chart = None
+
+    if request.method == 'POST':
+        form = request.form
+        saved_params = form.to_dict(flat=False)
+        # 处理多选特征
+        features = form.getlist('features')
+        target_column = form.get('target_column')
+        ml_algorithm = form.get('ml_algorithm')
+        test_size = float(form.get('test_size') or 20) / 100
+
+        analyzer = DataAnalyzer(GLOBAL_DF)
+
+        try:
+            if ml_algorithm == 'linear_regression':
+                result = analyzer.predict(features, target_column, test_size=test_size, method='linear')
+                ml_metrics = {'MSE': result['mse'], 'R2': result['r2']}
+                # 可选：生成预测结果图
+            elif ml_algorithm == 'random_forest_regression':
+                result = analyzer.predict(features, target_column, test_size=test_size, method='random_forest')
+                ml_metrics = {'MSE': result['mse'], 'R2': result['r2']}
+                # 可选：生成特征重要性图
+            elif ml_algorithm == 'random_forest_classification':
+                result = analyzer.classify(features, target_column, test_size=test_size)
+                ml_metrics = {'准确率': result['accuracy']}
+                # 可选：生成特征重要性图
+            elif ml_algorithm == 'kmeans':
+                n_clusters = int(form.get('n_clusters') or 3)
+                result = analyzer.cluster_kmeans(features, n_clusters=n_clusters)
+                ml_metrics = {'轮廓系数': result['silhouette_score']}
+                # 可选：生成聚类可视化图
+            elif ml_algorithm == 'dbscan':
+                eps = float(form.get('eps') or 0.5)
+                min_samples = int(form.get('min_samples') or 5)
+                result = analyzer.cluster_dbscan(features, eps=eps, min_samples=min_samples)
+                ml_metrics = {'轮廓系数': result['silhouette_score'] or 0}
+            elif ml_algorithm == 'pca':
+                n_components = int(form.get('n_components') or 2)
+                result = analyzer.dimensionality_reduction(features, n_components=n_components)
+                ml_metrics = {'累计方差解释率': result['explained_variance']['cumulative_variance_ratio'][-1]}
+            else:
+                flash("请选择有效的算法")
+                return redirect(url_for('analyze'))
+
+            ml_results = True  # 标记有结果
+            # 你可以在此处生成 feature_importance_chart、predictions_chart、cluster_chart 的 base64 图片并传递
+
+        except Exception as e:
+            flash(f"分析失败: {str(e)}", "danger")
+
     return render_template(
         'analyze.html',
         saved_params=saved_params,
-        columns=columns
+        columns=columns,
+        ml_results=ml_results,
+        ml_metrics=ml_metrics,
+        feature_importance_chart=feature_importance_chart,
+        predictions_chart=predictions_chart,
+        cluster_chart=cluster_chart
     )
 @app.route('/visualize', methods=['GET'])
 def visualize_page():
