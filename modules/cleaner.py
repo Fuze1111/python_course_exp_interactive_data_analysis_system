@@ -58,6 +58,8 @@ class DataCleaning:
             self.data = self.data.drop_duplicates()
         elif method == 'mark':
             self.data['is_duplicate'] = self.data.duplicated()
+        elif method == 'none':
+            pass
         else:
             raise ValueError("无效的重复值处理方法。")
         return self.data
