@@ -107,3 +107,37 @@ document.addEventListener('DOMContentLoaded', function() {
         algorithmSelect.addEventListener('change', toggleTargetColumn);
     }
 });
+
+/**
+ * 当用户选择目标特征时，自动从特征选择列表中排除该特征
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const targetColumnSelect = document.getElementById('target_column');
+    const featureCheckboxes = document.querySelectorAll('input[name="features"]');
+
+    targetColumnSelect.addEventListener('change', function() {
+        const targetColumn = this.value;
+
+        // 遍历所有特征复选框
+        featureCheckboxes.forEach(checkbox => {
+            if (checkbox.value === targetColumn) {
+                // 如果是目标特征，取消选中并禁用
+                checkbox.checked = false;
+                checkbox.disabled = true;
+            } else {
+                // 其他特征恢复可选状态
+                checkbox.disabled = false;
+            }
+        });
+    });
+
+    // 页面加载时初始化
+    if (targetColumnSelect.value) {
+        featureCheckboxes.forEach(checkbox => {
+            if (checkbox.value === targetColumnSelect.value) {
+                checkbox.checked = false;
+                checkbox.disabled = true;
+            }
+        });
+    }
+});
