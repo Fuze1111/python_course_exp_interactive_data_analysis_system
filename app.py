@@ -2,6 +2,11 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, send_from_directory, jsonify
 import pandas as pd
 from datetime import datetime
+import io
+import base64
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
 import os
 import json
 
@@ -15,6 +20,10 @@ GLOBAL_DF = None
 FILENAME = None
 # 新增全局变量存储清洗后的数据
 CLEANED_DF = None
+
+# 解决matplotlib中文显示问题
+plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Micro Hei', 'Arial Unicode MS', 'sans-serif']
+plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -282,29 +291,193 @@ def analyze():
             if ml_algorithm == 'linear_regression':
                 result = analyzer.predict(features, target_column, test_size=test_size, method='linear')
                 ml_metrics = {'MSE': result['mse'], 'R2': result['r2']}
-                # 可选：生成预测结果图
+
+                # 生成预测结果图
+                plt.figure(figsize=(10, 6))
+                plt.scatter(result['y_test'], result['y_pred'], alpha=0.5)
+                plt.plot([min(result['y_test']), max(result['y_test'])],
+                         [min(result['y_test']), max(result['y_test'])], 'r--')
+                plt.xlabel('实际值')
+                plt.ylabel('预测值')
+                plt.title('线性回归: 预测值 vs 实际值')
+
+                # 将图保存到内存中
+                img_buf = io.BytesIO()
+                plt.savefig(img_buf, format='png')
+                img_buf.seek(0)
+                predictions_chart = "data:image/png;base64," + base64.b64encode(img_buf.read()).decode('utf-8')
+                plt.close()
+
             elif ml_algorithm == 'random_forest_regression':
                 result = analyzer.predict(features, target_column, test_size=test_size, method='random_forest')
                 ml_metrics = {'MSE': result['mse'], 'R2': result['r2']}
-                # 可选：生成特征重要性图
+
+                # 生成特征重要性图
+                if result['feature_importance']:
+                    # 排序特征重要性
+                    importance_df = pd.DataFrame({
+                        '特征': list(result['feature_importance'].keys()),
+                        '重要性': list(result['feature_importance'].values())
+                    })
+                    importance_df = importance_df.sort_values('重要性', ascending=False)
+
+                    plt.figure(figsize=(10, 6))
+                    sns.barplot(x='重要性', y='特征', data=importance_df)
+                    plt.title('随机森林回归: 特征重要性')
+                    plt.tight_layout()
+
+                    img_buf = io.BytesIO()
+                    plt.savefig(img_buf, format='png')
+                    img_buf.seek(0)
+                    feature_importance_chart = "data:image/png;base64," + base64.b64encode(img_buf.read()).decode(
+                        'utf-8')
+                    plt.close()
+
+                # 生成预测结果图
+                plt.figure(figsize=(10, 6))
+                plt.scatter(result['y_test'], result['y_pred'], alpha=0.5)
+                plt.plot([min(result['y_test']), max(result['y_test'])],
+                         [min(result['y_test']), max(result['y_test'])], 'r--')
+                plt.xlabel('实际值')
+                plt.ylabel('预测值')
+                plt.title('随机森林回归: 预测值 vs 实际值')
+
+                img_buf = io.BytesIO()
+                plt.savefig(img_buf, format='png')
+                img_buf.seek(0)
+                predictions_chart = "data:image/png;base64," + base64.b64encode(img_buf.read()).decode('utf-8')
+                plt.close()
+
             elif ml_algorithm == 'random_forest_classification':
                 result = analyzer.classify(features, target_column, test_size=test_size)
                 ml_metrics = {'准确率': result['accuracy']}
-                # 可选：生成特征重要性图
+
+                # 生成特征重要性图
+                if result['feature_importance']:
+                    # 排序特征重要性
+                    importance_df = pd.DataFrame({
+                        '特征': list(result['feature_importance'].keys()),
+                        '重要性': list(result['feature_importance'].values())
+                    })
+                    importance_df = importance_df.sort_values('重要性', ascending=False)
+
+                    plt.figure(figsize=(10, 6))
+                    sns.barplot(x='重要性', y='特征', data=importance_df)
+                    plt.title('随机森林分类: 特征重要性')
+                    plt.tight_layout()
+
+                    img_buf = io.BytesIO()
+                    plt.savefig(img_buf, format='png')
+                    img_buf.seek(0)
+                    feature_importance_chart = "data:image/png;base64," + base64.b64encode(img_buf.read()).decode(
+                        'utf-8')
+                    plt.close()
+
             elif ml_algorithm == 'kmeans':
                 n_clusters = int(form.get('n_clusters') or 3)
                 result = analyzer.cluster_kmeans(features, n_clusters=n_clusters)
                 ml_metrics = {'轮廓系数': result['silhouette_score']}
-                # 可选：生成聚类可视化图
+
+                # 生成聚类可视化图
+                if len(features) >= 2:
+                    # 若特征数大于2，则使用前两个特征进行可视化
+                    plt.figure(figsize=(10, 6))
+                    scatter = plt.scatter(
+                        df_for_ml[features[0]],
+                        df_for_ml[features[1]],
+                        c=result['data']['cluster'],
+                        cmap='viridis',
+                        alpha=0.6
+                    )
+                    plt.scatter(
+                        result['cluster_centers'][:, 0],
+                        result['cluster_centers'][:, 1],
+                        c='red',
+                        marker='x',
+                        s=100
+                    )
+                    plt.xlabel(features[0])
+                    plt.ylabel(features[1])
+                    plt.title(f'K均值聚类结果 (k={n_clusters})')
+                    plt.colorbar(scatter, label='聚类')
+
+                    img_buf = io.BytesIO()
+                    plt.savefig(img_buf, format='png')
+                    img_buf.seek(0)
+                    cluster_chart = "data:image/png;base64," + base64.b64encode(img_buf.read()).decode('utf-8')
+                    plt.close()
+
             elif ml_algorithm == 'dbscan':
                 eps = float(form.get('eps') or 0.5)
                 min_samples = int(form.get('min_samples') or 5)
                 result = analyzer.cluster_dbscan(features, eps=eps, min_samples=min_samples)
                 ml_metrics = {'轮廓系数': result['silhouette_score'] or 0}
+
+                # 生成聚类可视化图
+                if len(features) >= 2:
+                    # 若特征数大于2，则使用前两个特征进行可视化
+                    plt.figure(figsize=(10, 6))
+                    scatter = plt.scatter(
+                        df_for_ml[features[0]],
+                        df_for_ml[features[1]],
+                        c=result['data']['cluster'],
+                        cmap='viridis',
+                        alpha=0.6
+                    )
+                    plt.xlabel(features[0])
+                    plt.ylabel(features[1])
+                    plt.title(f'DBSCAN聚类结果 (eps={eps}, min_samples={min_samples})')
+                    plt.colorbar(scatter, label='聚类 (-1表示噪声点)')
+
+                    img_buf = io.BytesIO()
+                    plt.savefig(img_buf, format='png')
+                    img_buf.seek(0)
+                    cluster_chart = "data:image/png;base64," + base64.b64encode(img_buf.read()).decode('utf-8')
+                    plt.close()
+
             elif ml_algorithm == 'pca':
                 n_components = int(form.get('n_components') or 2)
                 result = analyzer.dimensionality_reduction(features, n_components=n_components)
                 ml_metrics = {'累计方差解释率': result['explained_variance']['cumulative_variance_ratio'][-1]}
+
+                # 生成PCA可视化图
+                if n_components >= 2:
+                    # 创建PCA结果散点图
+                    plt.figure(figsize=(12, 10))
+                    plt.subplot(2, 1, 1)
+                    plt.scatter(
+                        result['reduced_data']['PC1'],
+                        result['reduced_data']['PC2'],
+                        alpha=0.7
+                    )
+                    plt.xlabel('主成分1')
+                    plt.ylabel('主成分2')
+                    plt.title('PCA降维结果散点图')
+
+                    # 创建解释方差比例条形图
+                    plt.subplot(2, 1, 2)
+                    plt.bar(
+                        range(len(result['explained_variance']['explained_variance_ratio'])),
+                        result['explained_variance']['explained_variance_ratio']
+                    )
+                    plt.plot(
+                        range(len(result['explained_variance']['cumulative_variance_ratio'])),
+                        result['explained_variance']['cumulative_variance_ratio'],
+                        'r-o'
+                    )
+                    plt.xlabel('主成分')
+                    plt.ylabel('解释方差比例')
+                    plt.title('PCA解释方差比例')
+                    plt.xticks(range(len(result['explained_variance']['components'])),
+                               result['explained_variance']['components'])
+                    plt.tight_layout()
+
+                    img_buf = io.BytesIO()
+                    plt.savefig(img_buf, format='png')
+                    img_buf.seek(0)
+                    cluster_chart = "data:image/png;base64," + base64.b64encode(img_buf.read()).decode('utf-8')
+                    plt.close()
+
             else:
                 flash("请选择有效的算法")
                 return redirect(url_for('analyze'))
@@ -322,9 +495,9 @@ def analyze():
         categorical_columns=categorical_columns,
         ml_results=ml_results,
         ml_metrics=ml_metrics,
-        feature_importance_chart=feature_importance_chart,
-        predictions_chart=predictions_chart,
-        cluster_chart=cluster_chart
+        feature_importance_chart=feature_importance_chart if 'feature_importance_chart' in locals() else None,
+        predictions_chart=predictions_chart if 'predictions_chart' in locals() else None,
+        cluster_chart=cluster_chart if 'cluster_chart' in locals() else None
     )
 
 @app.route('/visualize', methods=['GET'])
