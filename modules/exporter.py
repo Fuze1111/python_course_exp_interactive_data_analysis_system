@@ -1,6 +1,5 @@
 # 导出 CSV/Excel文件的接口
 # modules/exporter.py
-import pandas as pd
 import os
 
 from pandas.core.internals import DataManager

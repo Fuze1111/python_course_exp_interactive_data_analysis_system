@@ -6,11 +6,7 @@ import io
 import base64
 import seaborn as sns
 import matplotlib.pyplot as plt
-import numpy as np
-import os
-import json
 
-from narwhals.selectors import categorical
 
 from modules import DataCleaning, DataUploader, DataVisualizer, DataExporter, DataAnalyzer
 
