@@ -92,6 +92,9 @@
                                 {% endfor %}
                             </div>
                             <div class="form-text">机器学习分析仅支持数值型特征</div>
+                            <div class="form-text">
+                                特征选择是指从所有特征中挑选对模型预测最有用的部分，有助于提升模型准确性、减少计算量、降低过拟合风险，让结果更易解释。
+                            </div>
                         </div>
                     </div>
                     <!-- 算法参数（动态显示） -->
@@ -105,6 +108,7 @@
                                                value="1"
                                                {% if saved_params.normalize %}checked{% endif %}>
                                         <label class="form-check-label" for="normalize">特征标准化</label>
+                                        <div class="form-text">对特征进行标准化处理，有助于提升模型表现。</div>
                                     </div>
                                 </div>
                                 <div class="algorithm-params" id="random_forest_regression_params"
@@ -113,11 +117,14 @@
                                         <label for="n_estimators" class="form-label">树的数量</label>
                                         <input type="number" class="form-control" id="n_estimators" name="n_estimators"
                                                value="{{ saved_params.n_estimators|default(100) }}" min="10" max="1000">
+                                         <div class="form-text">随机森林中决策树的数量，数量越多模型越稳定，但计算量增加。
+                                        </div>
                                     </div>
                                     <div class="mb-2">
                                         <label for="max_depth" class="form-label">最大深度</label>
                                         <input type="number" class="form-control" id="max_depth" name="max_depth"
                                                value="{{ saved_params.max_depth|default(10) }}" min="1" max="100">
+                                        <div class="form-text">每棵树的最大深度，防止过拟合。</div>
                                     </div>
                                 </div>
                                 <div class="algorithm-params" id="random_forest_classification_params"
@@ -128,12 +135,15 @@
                                                name="n_estimators_cls"
                                                value="{{ saved_params.n_estimators_cls|default(100) }}" min="10"
                                                max="1000">
+                                         <div class="form-text">随机森林中决策树的数量，数量越多模型越稳定，但计算量增加。
+                                        </div>
                                     </div>
                                     <div class="mb-2">
                                         <label for="max_depth_cls" class="form-label">最大深度</label>
                                         <input type="number" class="form-control" id="max_depth_cls"
                                                name="max_depth_cls" value="{{ saved_params.max_depth_cls|default(10) }}"
                                                min="1" max="100">
+                                        <div class="form-text">每棵树的最大深度，防止过拟合。</div>
                                     </div>
                                 </div>
                                 <div class="algorithm-params" id="kmeans_params" style="display: none;">
@@ -141,6 +151,7 @@
                                         <label for="n_clusters" class="form-label">聚类数量</label>
                                         <input type="number" class="form-control" id="n_clusters" name="n_clusters"
                                                value="{{ saved_params.n_clusters|default(3) }}" min="2" max="20">
+                                        <div class="form-text">分成的聚类（类别）数量，需根据数据实际情况设置。</div>
                                     </div>
                                 </div>
                                 <div class="algorithm-params" id="dbscan_params" style="display: none;">
@@ -149,11 +160,13 @@
                                         <input type="number" class="form-control" id="eps" name="eps"
                                                value="{{ saved_params.eps|default(0.5) }}" min="0.1" max="10"
                                                step="0.1">
+                                        <div class="form-text">邻域的最大距离，决定样本是否属于同一簇。</div>
                                     </div>
                                     <div class="mb-2">
                                         <label for="min_samples" class="form-label">min_samples</label>
                                         <input type="number" class="form-control" id="min_samples" name="min_samples"
                                                value="{{ saved_params.min_samples|default(5) }}" min="1" max="100">
+                                        <div class="form-text">每个核心点的最小邻域样本数，影响聚类的密度要求。</div>
                                     </div>
                                 </div>
                                 <div class="algorithm-params" id="pca_params" style="display: none;">
@@ -161,6 +174,7 @@
                                         <label for="n_components" class="form-label">主成分个数</label>
                                         <input type="number" class="form-control" id="n_components" name="n_components"
                                                value="{{ saved_params.n_components|default(2) }}" min="1" max="10">
+                                        <div class="form-text">降维后保留的主成分数量，通常为2或3用于可视化。</div>
                                     </div>
                                 </div>
                             </div>
