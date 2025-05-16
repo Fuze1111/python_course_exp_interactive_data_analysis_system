@@ -141,3 +141,102 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const algorithmSelect = document.getElementById('ml_algorithm');
+    const targetColumnSelect = document.getElementById('target_column');
+    const targetColumnFormGroup = targetColumnSelect ? targetColumnSelect.closest('.mb-3') : null;
+    const numericTargetGroup = document.getElementById('numeric_target_group');
+    const categoricalTargetGroup = document.getElementById('categorical_target_group');
+
+    function toggleTargetColumn() {
+        const selectedAlgorithm = algorithmSelect.value;
+        // 无监督学习算法列表
+        const unsupervisedAlgorithms = ['kmeans', 'dbscan', 'pca'];
+        // 回归算法列表 (只需要数值型目标)
+        const regressionAlgorithms = ['linear_regression', 'random_forest_regression'];
+        // 分类算法列表 (只接受分类型目标)
+        const classificationAlgorithms = ['random_forest_classification'];
+
+        if (targetColumnSelect && targetColumnFormGroup) {
+            if (unsupervisedAlgorithms.includes(selectedAlgorithm)) {
+                // 无监督学习: 禁用目标特征选择
+                targetColumnSelect.disabled = true;
+                targetColumnSelect.value = '';
+                targetColumnFormGroup.classList.add('text-muted');
+                document.getElementById('target_column_help').textContent = '无监督学习不需要目标变量';
+
+                // 启用所有特征复选框
+                document.querySelectorAll('input[name="features"]').forEach(checkbox => {
+                    checkbox.disabled = false;
+                });
+            } else {
+                // 监督学习: 启用目标特征选择
+                targetColumnSelect.disabled = false;
+                targetColumnFormGroup.classList.remove('text-muted');
+
+                // 根据算法类型显示相应的目标特征选项
+                if (regressionAlgorithms.includes(selectedAlgorithm)) {
+                    // 回归算法: 只显示数值型目标特征
+                    numericTargetGroup.style.display = '';
+                    categoricalTargetGroup.style.display = 'none';
+                    document.getElementById('target_column_help').textContent = '回归算法需要选择数值型目标变量';
+
+                    // 如果当前选择的不是数值型，清除选择
+                    const selectedOption = targetColumnSelect.options[targetColumnSelect.selectedIndex];
+                    if (selectedOption && selectedOption.getAttribute('data-type') !== 'numeric') {
+                        targetColumnSelect.value = '';
+                    }
+                } else if (classificationAlgorithms.includes(selectedAlgorithm)) {
+                    // 分类算法: 只显示分类型目标特征
+                    numericTargetGroup.style.display = 'none';
+                    categoricalTargetGroup.style.display = '';
+                    document.getElementById('target_column_help').textContent = '分类算法需要选择分类型目标变量';
+
+                    // 如果当前选择的不是分类型，清除选择
+                    const selectedOption = targetColumnSelect.options[targetColumnSelect.selectedIndex];
+                    if (selectedOption && selectedOption.getAttribute('data-type') !== 'categorical') {
+                        targetColumnSelect.value = '';
+                    }
+                }
+
+                // 如果已选择目标特征，更新特征选择框
+                if (targetColumnSelect.value) {
+                    updateFeatureCheckboxes(targetColumnSelect.value);
+                }
+            }
+        }
+    }
+
+    function updateFeatureCheckboxes(targetColumn) {
+        // 遍历所有特征复选框
+        document.querySelectorAll('input[name="features"]').forEach(checkbox => {
+            if (checkbox.value === targetColumn) {
+                // 如果是目标特征，取消选中并禁用
+                checkbox.checked = false;
+                checkbox.disabled = true;
+            } else {
+                // 其他特征恢复可选状态
+                checkbox.disabled = false;
+            }
+        });
+    }
+
+    // 初始化
+    if (algorithmSelect) {
+        toggleTargetColumn();
+        algorithmSelect.addEventListener('change', toggleTargetColumn);
+    }
+
+    // 当目标特征改变时更新特征复选框
+    if (targetColumnSelect) {
+        targetColumnSelect.addEventListener('change', function() {
+            updateFeatureCheckboxes(this.value);
+        });
+
+        // 页面加载时初始化
+        if (targetColumnSelect.value) {
+            updateFeatureCheckboxes(targetColumnSelect.value);
+        }
+    }
+});

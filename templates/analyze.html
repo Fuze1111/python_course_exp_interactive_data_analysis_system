@@ -47,13 +47,18 @@
                             <label for="target_column" class="form-label">目标特征</label>
                             <select class="form-select" id="target_column" name="target_column">
                                 <option value="" selected>--请选择--</option>
-                                {% for column in columns %}
-                                <option value="{{ column }}" {% if saved_params.target_column== column %}selected{%
-                                        endif %}>{{ column }}
-                                </option>
-                                {% endfor %}
+                                <optgroup label="数值型特征" id="numeric_target_group">
+                                    {% for column in numeric_columns %}
+                                    <option value="{{ column }}" data-type="numeric" {% if saved_params.target_column == column %}selected{% endif %}>{{ column }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="分类型特征" id="categorical_target_group">
+                                    {% for column in categorical_columns %}
+                                    <option value="{{ column }}" data-type="categorical" {% if saved_params.target_column == column %}selected{% endif %}>{{ column }}</option>
+                                    {% endfor %}
+                                </optgroup>
                             </select>
-                            <div class="form-text">监督学习需选择目标变量</div>
+                            <div class="form-text" id="target_column_help">监督学习需选择目标变量</div>
                         </div>
                     </div>
                     <!-- 测试集比例 -->

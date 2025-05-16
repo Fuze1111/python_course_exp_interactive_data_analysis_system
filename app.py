@@ -5,6 +5,8 @@ from datetime import datetime
 import os
 import json
 
+from narwhals.selectors import categorical
+
 from modules import DataCleaning, DataUploader, DataVisualizer, DataExporter, DataAnalyzer
 
 # 全局 DataFrame 存储
@@ -214,6 +216,8 @@ def analyze():
     columns = list(df_to_analyze.columns)
     # 更新数值列列表
     numeric_columns = list(df_to_analyze.select_dtypes(include=['number']).columns)
+    # 更新分类列列表
+    categorical_columns = list(df_to_analyze.select_dtypes(exclude=['number']).columns)
     ml_results = None
     ml_metrics = None
     feature_importance_chart = None
@@ -315,6 +319,7 @@ def analyze():
         saved_params=saved_params,
         columns=columns,
         numeric_columns=numeric_columns,
+        categorical_columns=categorical_columns,
         ml_results=ml_results,
         ml_metrics=ml_metrics,
         feature_importance_chart=feature_importance_chart,
